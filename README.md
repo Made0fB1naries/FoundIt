@@ -47,12 +47,14 @@ A web app where students and faculty can browse found items on campus, and admin
 ### 2. Clone and install
 
 ```bash
-git clone https://github.com/Made0fB1naries/FoundIt-Prototype-redesigned-
-cd <your-repo>
+git clone [https://github.com/Made0fB1naries/FoundIt-Prototype-redesigned-.git](https://github.com/Made0fB1naries/FoundIt-Prototype-redesigned-.git)
+cd FoundIt-Prototype-redesigned-
 
 python -m venv .venv
-# Windows:      .venv\Scripts\activate
-# macOS/Linux:  source .venv/bin/activate
+# Windows:
+.venv\Scripts\activate
+# macOS/Linux:
+source .venv/bin/activate
 
 pip install -r requirements.txt
 ```
