@@ -14,7 +14,6 @@ class ValidationError(ValueError):
 
 
 class Status(str, Enum):
-    LOST = "Lost"
     PENDING = "Pending Claim"
     CLAIMED = "Claimed"
 
@@ -23,7 +22,7 @@ class Status(str, Enum):
         try:
             return cls(value)
         except ValueError:
-            return cls.LOST
+            return cls.PENDING 
 
 
 # ---------------------------------------------------------------- infrastructure
@@ -120,7 +119,7 @@ class CategoryCatalog:
 
 
 class Tracking:
-    def __init__(self, status=Status.LOST, date_claimed=None):
+    def __init__(self, status=Status.PENDING, date_claimed=None):
         self._status = Status.parse(status)
         self._date_claimed = date_claimed
 
@@ -287,7 +286,7 @@ class Post:
             catalog.find(record.get("category_name")),
             record.get("campus_location") or default_campus,
             record.get("image_url"),
-            Tracking(record.get("status", Status.LOST), record.get("date_claimed")),
+            Tracking(record.get("status", Status.PENDING), record.get("date_claimed")),
         )
         user = UserFactory.create(record["institutional_id"], record.get("username"))
         return cls(record["post_id"], record["date_posted"], user, item)
