@@ -47,7 +47,7 @@ A web app where students and faculty can browse found items on campus, and admin
 ### 2. Clone and install
 
 ```bash
-git clone https://github.com/<your-username>/<your-repo>.git
+git clone https://github.com/Made0fB1naries/FoundIt-Prototype-redesigned-
 cd <your-repo>
 
 python -m venv .venv
