@@ -1,6 +1,6 @@
 # FoundIt: Campus Lost & Found Hub
 
-A web app where students and faculty can browse found items on campus, and administrators can post items and track them until they are claimed. Built with **Python OOP**, **Streamlit** and **Supabase** for Mapúa Malayan Colleges Mindanao (Davao City).
+A web app where students and faculty can browse found items on campus, and administrators can post items and track them until they are claimed. Built with **Python**, **Streamlit** and **Supabase** for Mapúa Malayan Colleges Mindanao (Davao City).
 
 ## Features
 
