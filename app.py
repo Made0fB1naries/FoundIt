@@ -45,7 +45,6 @@ footer { visibility: hidden; }
 .fi-title { font-size: 1.15rem; font-weight: 500; margin: 0 0 8px; }
 .fi-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .fi-chip { padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 500; background: #1E2A3A; color: #D3E3FD; }
-.fi-lost { background: #4A1D1D; color: #FFB4AB; }
 .fi-pending { background: #4A3B00; color: #FFDF8B; }
 .fi-claimed { background: #0F3D22; color: #A8E6B8; }
 .fi-desc { color: #C4C7C5; margin: 0 0 8px; font-size: 0.9rem; }
@@ -152,7 +151,7 @@ class CookieSession:
 # ---------------------------------------------------------------- views
 
 class PostCardView:
-    STATUS_CLASS = {Status.LOST: "fi-lost", Status.PENDING: "fi-pending", Status.CLAIMED: "fi-claimed"}
+    STATUS_CLASS = {Status.PENDING: "fi-pending", Status.CLAIMED: "fi-claimed"}
 
     def __init__(self, post, claimed=False, retention_days=7):
         self._post = post
