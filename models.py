@@ -507,11 +507,12 @@ class LostAndFoundService:
             and p.matches(query)
         ]
 
-    def claimed(self, campus=None):
+    def claimed(self, campus=None, query=""):
         return [
             p for p in reversed(self._posts)
             if p.item.tracking.is_claimed
             and (campus is None or p.item.campus_location == campus)
+            and p.matches(query)
         ]
 
     @staticmethod
