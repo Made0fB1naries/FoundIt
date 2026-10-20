@@ -57,9 +57,11 @@ footer { visibility: hidden; }
 .st-key-logout button p { color: #C4C7C5 !important; }
 [data-testid="stForm"] { background: #101010; border: 1px solid #232323; border-radius: 28px; padding: 20px; }
 [data-baseweb="input"], [data-baseweb="base-input"], [data-baseweb="textarea"], [data-baseweb="select"] > div { border-radius: 16px !important; }
-.st-key-feed_search [data-baseweb="input"], .st-key-feed_search [data-baseweb="base-input"], .st-key-feed_search input { border-radius: 999px !important; }
-.st-key-feed_search input { padding-left: 18px !important; }
-.st-key-feed_campus [data-baseweb="select"] > div { border-radius: 999px !important; }
+.st-key-feed_search [data-baseweb="input"], .st-key-feed_search [data-baseweb="base-input"], .st-key-feed_search input,
+.st-key-claimed_search [data-baseweb="input"], .st-key-claimed_search [data-baseweb="base-input"], .st-key-claimed_search input { border-radius: 999px !important; }
+.st-key-feed_search input, .st-key-claimed_search input { padding-left: 18px !important; }
+.st-key-feed_campus [data-baseweb="select"] > div, .st-key-claimed_campus [data-baseweb="select"] > div { border-radius: 999px !important; }
+[data-testid="stImage"] img { border-radius: 20px; }
 """
 
     @classmethod
@@ -317,11 +319,18 @@ class ClaimedPage(Page):
 
     def render(self, user):
         st.caption(f"Claimed items stay here for {self._service.RETENTION_DAYS} days, then are removed automatically.")
-        campus = self._campus_filter("claimed_campus")
+        col_search, col_campus = st.columns([3, 1])
+        with col_search:
+            query = st.text_input(
+                "Search", "", key="claimed_search", placeholder="Search by name, category or description",
+                label_visibility="collapsed",
+            )
+        with col_campus:
+            campus = self._campus_filter("claimed_campus")
 
-        posts = self._service.claimed(campus)
+        posts = self._service.claimed(campus, query)
         if not posts:
-            EmptyState.show("No claimed items.")
+            EmptyState.show("No claimed items match your search or filter.")
         else:
             PostGrid(posts, claimed=True, retention_days=self._service.RETENTION_DAYS).render()
 
@@ -330,7 +339,10 @@ class ReportPage(AdminPage):
     title = "Report"
 
     def _photo_section(self, rk):
-        return st.file_uploader("Item Photo", type=["jpg", "jpeg", "png"], key=f"r_photo_{rk}")
+        photo = st.file_uploader("Item Photo", type=["jpg", "jpeg", "png"], key=f"r_photo_{rk}")
+        if photo is not None:
+            st.image(photo, caption=photo.name, use_container_width=True)
+        return photo
 
     def _details_section(self, user, rk, photo):
         name = st.text_input("Item Name", key=f"r_name_{rk}")
