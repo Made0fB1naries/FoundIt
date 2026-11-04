@@ -218,6 +218,19 @@ footer { visibility: hidden; }
 }
 
 /* Main application */
+.st-key-main_shell {
+    width: 100%;
+    max-width: 1180px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding: 2rem 2.25rem 3rem !important;
+    box-sizing: border-box;
+}
+@media (max-width: 800px) {
+    .st-key-main_shell {
+        padding: 1.25rem 1rem 2rem !important;
+    }
+}
 .fi-brand { display: flex; align-items: center; gap: 12px; }
 .fi-logo {
     width: 44px; height: 44px; border-radius: 12px;
@@ -703,19 +716,21 @@ class FoundItApp:
         st.rerun()
 
     def _render_main(self, user):
-        service = self._service()
-        service.refresh_if_stale()
-        if AppBar(self._institution, user).render():
-            self._logout()
+        # Keep the authenticated app centered and comfortably sized on wide screens.
+        with st.container(key="main_shell"):
+            service = self._service()
+            service.refresh_if_stale()
+            if AppBar(self._institution, user).render():
+                self._logout()
 
-        if not user.can_manage_items():
-            st.caption("Standard account: only administrators can report or update items.")
+            if not user.can_manage_items():
+                st.caption("Standard account: only administrators can report or update items.")
 
-        navigation = st.pills(
-            "Section", user.sections(), default="Feed", key="nav", label_visibility="collapsed"
-        ) or "Feed"
-        pages = {cls.title: cls(service, self._state) for cls in self.PAGES}
-        pages.get(navigation, pages["Feed"]).render(user)
+            navigation = st.pills(
+                "Section", user.sections(), default="Feed", key="nav", label_visibility="collapsed"
+            ) or "Feed"
+            pages = {cls.title: cls(service, self._state) for cls in self.PAGES}
+            pages.get(navigation, pages["Feed"]).render(user)
 
     def run(self):
         Theme.apply()
