@@ -443,6 +443,111 @@ footer { visibility: hidden; }
     color: var(--fi-red) !important;
 }
 
+/* Soft grey controls across Feed, Claimed, and Report */
+.st-key-main_shell [data-baseweb="input"],
+.st-key-main_shell [data-baseweb="base-input"],
+.st-key-main_shell [data-baseweb="textarea"],
+.st-key-main_shell [data-baseweb="select"] > div,
+.st-key-main_shell [data-testid="stDateInput"] input,
+.st-key-main_shell [data-testid="stNumberInput"] input {
+    background: #F3F4F6 !important;
+    border: 1px solid #D8DADF !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+.st-key-main_shell [data-baseweb="input"] > div,
+.st-key-main_shell [data-baseweb="base-input"] > div,
+.st-key-main_shell [data-baseweb="textarea"] > div,
+.st-key-main_shell [data-baseweb="select"] > div {
+    background: #F3F4F6 !important;
+}
+.st-key-main_shell input,
+.st-key-main_shell textarea,
+.st-key-main_shell [data-baseweb="select"] *,
+.st-key-main_shell [data-testid="stNumberInput"] input {
+    color: #292730 !important;
+    -webkit-text-fill-color: #292730 !important;
+}
+.st-key-main_shell input::placeholder,
+.st-key-main_shell textarea::placeholder {
+    color: #77737D !important;
+    -webkit-text-fill-color: #77737D !important;
+    opacity: 1 !important;
+}
+.st-key-main_shell [data-baseweb="input"]:focus-within,
+.st-key-main_shell [data-baseweb="textarea"]:focus-within,
+.st-key-main_shell [data-baseweb="select"]:focus-within {
+    border-color: #B8B5BE !important;
+    box-shadow: 0 0 0 1px #B8B5BE !important;
+}
+
+/* Buttons use the same quiet grey surface as the login input fields */
+.st-key-main_shell .stButton > button,
+.st-key-main_shell .stFormSubmitButton > button,
+.st-key-main_shell [data-testid^="stBaseButton-"] {
+    background: #F3F4F6 !important;
+    color: #34313B !important;
+    border: 1px solid #D8DADF !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+.st-key-main_shell .stButton > button:hover,
+.st-key-main_shell .stFormSubmitButton > button:hover,
+.st-key-main_shell [data-testid^="stBaseButton-"]:hover {
+    background: #E7E8EB !important;
+    border-color: #C9CBD1 !important;
+}
+.st-key-main_shell .stButton > button *,
+.st-key-main_shell .stFormSubmitButton > button *,
+.st-key-main_shell [data-testid^="stBaseButton-"] * {
+    color: #34313B !important;
+    fill: #34313B !important;
+}
+
+/* Search and campus filters have a soft grey pill appearance */
+.st-key-main_shell .st-key-feed_search [data-baseweb="input"],
+.st-key-main_shell .st-key-claimed_search [data-baseweb="input"],
+.st-key-main_shell .st-key-feed_campus [data-baseweb="select"] > div,
+.st-key-main_shell .st-key-claimed_campus [data-baseweb="select"] > div {
+    background: #F3F4F6 !important;
+    border: 1px solid #D8DADF !important;
+}
+.st-key-main_shell .st-key-feed_search input,
+.st-key-main_shell .st-key-claimed_search input {
+    background: transparent !important;
+    color: #292730 !important;
+}
+
+/* Report tab uploader/drop area */
+.st-key-main_shell [data-testid="stFileUploader"] section,
+.st-key-main_shell [data-testid="stFileUploader"] [data-testid="stFileUploaderDropzone"] {
+    background: #F3F4F6 !important;
+    border: 1px dashed #C9CBD1 !important;
+    border-radius: 10px !important;
+}
+.st-key-main_shell [data-testid="stFileUploader"] *,
+.st-key-main_shell [data-testid="stFileUploader"] small {
+    color: #514D58 !important;
+}
+.st-key-main_shell [data-testid="stFileUploader"] button {
+    background: #E7E8EB !important;
+    color: #34313B !important;
+    border: 1px solid #D0D2D8 !important;
+}
+.st-key-main_shell [data-testid="stFileUploader"] button * {
+    color: #34313B !important;
+}
+
+/* Radio controls and labels in the report/status forms */
+.st-key-main_shell [data-testid="stRadio"] label,
+.st-key-main_shell [data-testid="stCheckbox"] label,
+.st-key-main_shell [data-testid="stWidgetLabel"] p {
+    color: #34313B !important;
+}
+.st-key-main_shell [data-testid="stRadio"] [data-baseweb="radio"] div:first-child {
+    border-color: #77737D !important;
+}
+
 /* Form surfaces and feedback blocks */
 .st-key-main_shell [data-testid="stForm"] {
     background: #FFFFFF !important;
