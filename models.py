@@ -2,8 +2,12 @@
 import time
 import uuid
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
 from enum import Enum
+from typing import ClassVar
+
+from functional import all_of, compose, filter_values, map_values, reduce_values
 
 import streamlit as st
 from supabase import create_client, Client
@@ -53,50 +57,42 @@ def get_gateway() -> SupabaseGateway:
 
 # ---------------------------------------------------------------- domain entities
 
+@dataclass(frozen=True)
 class Institution:
+    name: str
+    city: str
+    campuses: tuple[str, ...]
+
     def __init__(self, name, city, campuses):
-        self._name = name
-        self._city = city
-        self._campuses = list(campuses)
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def city(self):
-        return self._city
-
-    @property
-    def campuses(self):
-        return list(self._campuses)
+        campuses = tuple(campuses)
+        if not campuses:
+            raise ValueError("An institution must have at least one campus.")
+        object.__setattr__(self, "name", name)
+        object.__setattr__(self, "city", city)
+        object.__setattr__(self, "campuses", campuses)
 
     @property
     def default_campus(self):
-        return self._campuses[0]
+        return self.campuses[0]
 
     def get_details(self):
-        return f"{self._name} - {self._city}"
+        return f"{self.name} - {self.city}"
 
 
+@dataclass(frozen=True)
 class Category:
-    def __init__(self, name, code):
-        self._name = name
-        self._code = code
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def code(self):
-        return self._code
+    name: str
+    code: str
 
 
+@dataclass(frozen=True)
 class CategoryCatalog:
+    _categories: tuple[Category, ...]
+    _fallback_name: str
+
     def __init__(self, categories, fallback_name):
-        self._categories = list(categories)
-        self._fallback_name = fallback_name
+        object.__setattr__(self, "_categories", tuple(categories))
+        object.__setattr__(self, "_fallback_name", fallback_name)
 
     @classmethod
     def default(cls):
@@ -108,40 +104,45 @@ class CategoryCatalog:
         ], fallback_name="Others")
 
     def all(self):
-        return list(self._categories)
+        return self._categories
 
     def names(self):
-        return [c.name for c in self._categories]
+        return map_values(lambda category: category.name, self._categories)
 
     def find(self, name):
-        by_name = {c.name: c for c in self._categories}
+        by_name = {category.name: category for category in self._categories}
         return by_name.get(name) or by_name[self._fallback_name]
 
 
+@dataclass(frozen=True)
 class Tracking:
-    def __init__(self, status=Status.PENDING, date_claimed=None):
-        self._status = Status.parse(status)
-        self._date_claimed = date_claimed
+    status: Status = Status.PENDING
+    date_claimed: str | None = None
 
-    @property
-    def status(self):
-        return self._status
-
-    @property
-    def date_claimed(self):
-        return self._date_claimed
+    def __post_init__(self):
+        # Accept either Status values or their stored string representation.
+        object.__setattr__(self, "status", Status.parse(self.status))
 
     @property
     def is_claimed(self):
-        return self._status is Status.CLAIMED
+        return self.status is Status.CLAIMED
+
+    def with_status(self, new_status, claimed_at=None):
+        """Return a new Tracking object; leave this instance unchanged."""
+        status = Status(new_status)  # invalid values raise ValueError
+        date_claimed = (
+            claimed_at or datetime.now(timezone.utc).isoformat()
+            if status is Status.CLAIMED else None
+        )
+        return replace(self, status=status, date_claimed=date_claimed)
 
     def update(self, new_status):
-        self._status = Status(new_status)  # raises ValueError if invalid
-        self._date_claimed = datetime.now(timezone.utc).isoformat() if self.is_claimed else None
+        """Compatibility method that now returns a replacement Tracking object."""
+        return self.with_status(new_status)
 
     def days_left(self, retention_days):
         try:
-            claimed_at = datetime.fromisoformat(str(self._date_claimed).replace("Z", "+00:00"))
+            claimed_at = datetime.fromisoformat(str(self.date_claimed).replace("Z", "+00:00"))
             if claimed_at.tzinfo is None:
                 claimed_at = claimed_at.replace(tzinfo=timezone.utc)
             remaining = claimed_at + timedelta(days=retention_days) - datetime.now(timezone.utc)
@@ -150,69 +151,53 @@ class Tracking:
             return None
 
 
+_NORMALIZE_TEXT = compose(str.lower, str.strip, lambda value: value or "")
+
+
+@dataclass(frozen=True)
 class Item:
-    def __init__(self, name, description, category, campus_location, image_url=None, tracking=None):
-        self._name = name
-        self._description = description or ""
-        self._category = category
-        self._campus_location = campus_location
-        self._image_url = image_url
-        self._tracking = tracking or Tracking()
+    name: str
+    description: str
+    category: Category
+    campus_location: str
+    image_url: str | None = None
+    tracking: Tracking = field(default_factory=Tracking)
 
-    @property
-    def name(self):
-        return self._name
+    def __post_init__(self):
+        object.__setattr__(self, "description", self.description or "")
+        if self.tracking is None:
+            object.__setattr__(self, "tracking", Tracking())
 
-    @property
-    def description(self):
-        return self._description
+    def with_image(self, url):
+        """Return a new Item containing the uploaded image URL."""
+        return replace(self, image_url=url)
 
-    @property
-    def category(self):
-        return self._category
-
-    @property
-    def campus_location(self):
-        return self._campus_location
-
-    @property
-    def image_url(self):
-        return self._image_url
-
-    @property
-    def tracking(self):
-        return self._tracking
-
-    def attach_image(self, url):
-        self._image_url = url
+    def with_tracking(self, tracking):
+        """Return a new Item with replacement tracking information."""
+        return replace(self, tracking=tracking)
 
     def matches(self, query):
-        q = (query or "").strip().lower()
-        if not q:
+        normalized_query = _NORMALIZE_TEXT(query)
+        if not normalized_query:
             return True
-        return q in self._name.lower() or q in self._category.name.lower() or q in self._description.lower()
+        searchable_fields = map_values(
+            _NORMALIZE_TEXT,
+            (self.name, self.category.name, self.description),
+        )
+        return any(normalized_query in value for value in searchable_fields)
 
 
 # ---------------------------------------------------------------- users
 
+@dataclass(frozen=True)
 class User(ABC):
-    BASE_SECTIONS = ["Feed", "Claimed"]
-
-    def __init__(self, username, institutional_id):
-        self._username = username
-        self._institutional_id = institutional_id
-
-    @property
-    def username(self):
-        return self._username
-
-    @property
-    def institutional_id(self):
-        return self._institutional_id
+    username: str
+    institutional_id: str
+    BASE_SECTIONS: ClassVar[tuple[str, ...]] = ("Feed", "Claimed")
 
     @property
     def avatar_initial(self):
-        return self._username[:1].upper()
+        return self.username[:1].upper()
 
     @property
     @abstractmethod
@@ -249,7 +234,7 @@ class Administrator(User):
         return True
 
     def sections(self):
-        return self.BASE_SECTIONS + ["Report", "Update status"]
+        return list(self.BASE_SECTIONS) + ["Report", "Update status"]
 
 
 class UserFactory:
@@ -266,12 +251,12 @@ class UserFactory:
         return StandardUser(username, email)
 
 
+@dataclass(frozen=True)
 class Post:
-    def __init__(self, post_id, date_posted, user, item):
-        self._post_id = post_id
-        self._date_posted = date_posted
-        self._user = user
-        self._item = item
+    post_id: str
+    date_posted: str
+    user: User
+    item: Item
 
     @classmethod
     def create(cls, user, item):
@@ -292,41 +277,33 @@ class Post:
         return cls(record["post_id"], record["date_posted"], user, item)
 
     @property
-    def post_id(self):
-        return self._post_id
-
-    @property
     def tracking_id(self):
-        return f"TRK-{self._post_id}"
+        return f"TRK-{self.post_id}"
 
-    @property
-    def date_posted(self):
-        return self._date_posted
+    def with_item(self, item):
+        """Return a new Post containing the supplied immutable Item."""
+        return replace(self, item=item)
 
-    @property
-    def user(self):
-        return self._user
-
-    @property
-    def item(self):
-        return self._item
+    def with_tracking(self, tracking):
+        """Return a new Post with new tracking data, without mutating old objects."""
+        return self.with_item(self.item.with_tracking(tracking))
 
     def matches(self, query):
-        return self._item.matches(query)
+        return self.item.matches(query)
 
     def to_record(self):
         return {
-            "post_id": self._post_id,
-            "date_posted": self._date_posted,
-            "username": self._user.username,
-            "institutional_id": self._user.institutional_id,
-            "item_name": self._item.name,
-            "description": self._item.description,
-            "category_name": self._item.category.name,
-            "campus_location": self._item.campus_location,
-            "image_url": self._item.image_url,
-            "status": self._item.tracking.status.value,
-            "date_claimed": self._item.tracking.date_claimed,
+            "post_id": self.post_id,
+            "date_posted": self.date_posted,
+            "username": self.user.username,
+            "institutional_id": self.user.institutional_id,
+            "item_name": self.item.name,
+            "description": self.item.description,
+            "category_name": self.item.category.name,
+            "campus_location": self.item.campus_location,
+            "image_url": self.item.image_url,
+            "status": self.item.tracking.status.value,
+            "date_claimed": self.item.tracking.date_claimed,
         }
 
 
@@ -432,13 +409,19 @@ class SupabasePostRepository(PostRepository):
 
     def all(self):
         rows = self._gateway.reader.table(self.TABLE).select("*").execute().data or []
-        posts = [Post.from_record(r, self._catalog, self._default_campus) for r in rows]
-        return sorted(posts, key=lambda p: p.post_id)  # oldest first
+        posts = map_values(
+            lambda row: Post.from_record(row, self._catalog, self._default_campus),
+            rows,
+        )
+        return tuple(sorted(posts, key=lambda post: post.post_id))  # oldest first
 
     def add(self, post, image=None):
+        stored_post = post
         if image is not None:
-            post.item.attach_image(self._storage.upload(post.post_id, image))
-        self._gateway.writer.table(self.TABLE).insert(post.to_record()).execute()
+            image_url = self._storage.upload(post.post_id, image)
+            stored_post = post.with_item(post.item.with_image(image_url))
+        self._gateway.writer.table(self.TABLE).insert(stored_post.to_record()).execute()
+        return stored_post
 
     def save_status(self, post):
         tracking = post.item.tracking
@@ -463,15 +446,26 @@ class SupabasePostRepository(PostRepository):
 
 # ---------------------------------------------------------------- application service
 
+@dataclass(frozen=True)
+class PostSummary:
+    active: int
+    claimed: int
+
+    @property
+    def total(self):
+        return self.active + self.claimed
+
+
 class LostAndFoundService:
     RETENTION_DAYS = 7
     STALE_AFTER = 30  # seconds before the feed reloads from the database
 
-    def __init__(self, repository, catalog, institution):
+    def __init__(self, repository, catalog, institution, matcher=None):
         self._repo = repository
         self._catalog = catalog
         self._institution = institution
-        self._posts = []
+        self._matcher = matcher  # optional logic engine (Prolog rules)
+        self._posts = ()
         self._loaded_at = 0.0
         self.refresh()
 
@@ -485,11 +479,12 @@ class LostAndFoundService:
 
     @property
     def posts(self):
-        return list(self._posts)
+        # Tuples prevent callers from changing the service's collection.
+        return self._posts
 
     def refresh(self):
         self._repo.purge_expired(self.RETENTION_DAYS)
-        self._posts = self._repo.all()
+        self._posts = tuple(sorted(self._repo.all(), key=lambda post: post.post_id))
         self._loaded_at = time.monotonic()
 
     def refresh_if_stale(self):
@@ -497,23 +492,48 @@ class LostAndFoundService:
             self.refresh()
 
     def find(self, post_id):
-        return next(p for p in self._posts if p.post_id == post_id)
+        return next(filter(lambda post: post.post_id == post_id, self._posts))
+
+    def _filter_posts(self, status_predicate, campus, query):
+        predicate = all_of(
+            status_predicate,
+            lambda post: campus is None or post.item.campus_location == campus,
+            lambda post: post.matches(query),
+        )
+        return filter_values(predicate, reversed(self._posts))
 
     def active(self, campus=None, query=""):
-        return [
-            p for p in reversed(self._posts)
-            if not p.item.tracking.is_claimed
-            and (campus is None or p.item.campus_location == campus)
-            and p.matches(query)
-        ]
+        return self._filter_posts(lambda post: not post.item.tracking.is_claimed, campus, query)
 
     def claimed(self, campus=None, query=""):
-        return [
-            p for p in reversed(self._posts)
-            if p.item.tracking.is_claimed
-            and (campus is None or p.item.campus_location == campus)
-            and p.matches(query)
-        ]
+        return self._filter_posts(lambda post: post.item.tracking.is_claimed, campus, query)
+
+    def possible_matches(self, query, campus=None, category=None):
+        """Posts the logic engine considers possible matches; empty when it is unavailable."""
+        if self._matcher is None or not (query or "").strip():
+            return ()
+        records = map_values(lambda post: post.to_record(), self._posts)
+        try:
+            results = self._matcher.find_possible_matches(
+                query, records, category=category, campus=campus
+            )
+        except Exception as e:  # keep the feed usable if the Prolog engine fails
+            print(f"Logic engine error: {e}")
+            return ()
+        by_id = {post.post_id: post for post in self._posts}
+        return tuple(by_id[r["post_id"]] for r in results if r["post_id"] in by_id)
+
+    def summary(self):
+        """Aggregate post statuses with reduce into an immutable result."""
+        active_count, claimed_count = reduce_values(
+            lambda counts, post: (
+                counts[0] + int(not post.item.tracking.is_claimed),
+                counts[1] + int(post.item.tracking.is_claimed),
+            ),
+            self._posts,
+            (0, 0),
+        )
+        return PostSummary(active_count, claimed_count)
 
     @staticmethod
     def _require_admin(user):
@@ -528,11 +548,19 @@ class LostAndFoundService:
         post = Post.create(user, item)
         self._repo.add(post, image)
         self.refresh()
-        return post
+        return self.find(post.post_id)
 
     def set_status(self, user, post_id, new_status):
         self._require_admin(user)
         post = self.find(post_id)
-        post.item.tracking.update(new_status)
-        self._repo.save_status(post)
-        self.refresh()
+        updated_tracking = post.item.tracking.update(new_status)
+        updated_post = post.with_tracking(updated_tracking)
+
+        # Persist first. Only replace the in-memory value after the save succeeds.
+        self._repo.save_status(updated_post)
+        self._posts = map_values(
+            lambda current: updated_post if current.post_id == post_id else current,
+            self._posts,
+        )
+        self._loaded_at = time.monotonic()
+        return updated_post
