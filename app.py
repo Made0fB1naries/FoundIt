@@ -294,6 +294,167 @@ footer { visibility: hidden; }
 .st-key-feed_search input, .st-key-claimed_search input { padding-left: 18px !important; }
 .st-key-feed_campus [data-baseweb="select"] > div, .st-key-claimed_campus [data-baseweb="select"] > div { border-radius: 999px !important; }
 [data-testid="stImage"] img { border-radius: 12px; }
+
+/* MCM light palette: improve contrast throughout the signed-in app */
+:root {
+    --fi-text: #24232B;
+    --fi-secondary: #55515D;
+    --fi-muted: #706B78;
+    --fi-red: #B5122B;
+    --fi-red-hover: #940E23;
+    --fi-border: #DEDDE3;
+    --fi-input: #F4F3F6;
+    --fi-soft-red: #FBE9ED;
+}
+
+/* Streamlit text, headings, captions and widget labels */
+.st-key-main_shell,
+.st-key-main_shell [data-testid="stMarkdown"],
+.st-key-main_shell [data-testid="stMarkdown"] p,
+.st-key-main_shell [data-testid="stMarkdown"] li,
+.st-key-main_shell [data-testid="stMarkdown"] span,
+.st-key-main_shell [data-testid="stCaptionContainer"],
+.st-key-main_shell [data-testid="stCaptionContainer"] p,
+.st-key-main_shell label,
+.st-key-main_shell legend,
+.st-key-main_shell [data-testid="stWidgetLabel"] p {
+    color: var(--fi-text) !important;
+}
+.st-key-main_shell h1,
+.st-key-main_shell h2,
+.st-key-main_shell h3,
+.st-key-main_shell h4 {
+    color: #211F27 !important;
+    font-weight: 700;
+}
+.st-key-main_shell [data-testid="stCaptionContainer"] p,
+.st-key-main_shell .fi-sub,
+.st-key-main_shell .fi-role,
+.st-key-main_shell .fi-meta {
+    color: var(--fi-muted) !important;
+}
+.st-key-main_shell .fi-title {
+    color: #211F27 !important;
+}
+.st-key-main_shell .fi-desc {
+    color: #514D58 !important;
+}
+.st-key-main_shell .fi-empty {
+    color: #625D69 !important;
+    background: #FFFFFF;
+}
+
+/* Inputs, text areas and dropdowns */
+.st-key-main_shell [data-baseweb="input"],
+.st-key-main_shell [data-baseweb="base-input"],
+.st-key-main_shell [data-baseweb="textarea"],
+.st-key-main_shell [data-baseweb="select"] > div {
+    background: var(--fi-input) !important;
+    border: 1px solid var(--fi-border) !important;
+    color: var(--fi-text) !important;
+    box-shadow: none !important;
+}
+.st-key-main_shell input,
+.st-key-main_shell textarea {
+    color: var(--fi-text) !important;
+    background: transparent !important;
+    -webkit-text-fill-color: var(--fi-text) !important;
+}
+.st-key-main_shell input::placeholder,
+.st-key-main_shell textarea::placeholder {
+    color: #817B88 !important;
+    -webkit-text-fill-color: #817B88 !important;
+    opacity: 1 !important;
+}
+.st-key-main_shell [data-baseweb="select"] *,
+.st-key-main_shell [data-baseweb="popover"] *,
+[data-baseweb="menu"] * {
+    color: var(--fi-text) !important;
+}
+.st-key-main_shell [data-baseweb="select"] svg {
+    fill: #625D69 !important;
+}
+
+/* Consistent MCM-red primary buttons and readable neutral buttons */
+.st-key-main_shell .stButton > button,
+.st-key-main_shell .stFormSubmitButton > button,
+.st-key-main_shell [data-testid^="stBaseButton-"] {
+    background: var(--fi-red) !important;
+    color: #FFFFFF !important;
+    border: 1px solid var(--fi-red) !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+.st-key-main_shell .stButton > button:hover,
+.st-key-main_shell .stFormSubmitButton > button:hover,
+.st-key-main_shell [data-testid^="stBaseButton-"]:hover {
+    background: var(--fi-red-hover) !important;
+    border-color: var(--fi-red-hover) !important;
+}
+.st-key-main_shell .stButton > button *,
+.st-key-main_shell .stFormSubmitButton > button *,
+.st-key-main_shell [data-testid^="stBaseButton-"] * {
+    color: #FFFFFF !important;
+    fill: #FFFFFF !important;
+}
+
+/* Logout remains a quiet outlined button */
+.st-key-main_shell .st-key-logout button {
+    background: #FFFFFF !important;
+    color: #514D58 !important;
+    border: 1px solid #D5D2DA !important;
+}
+.st-key-main_shell .st-key-logout button *,
+.st-key-main_shell .st-key-logout button svg {
+    color: #514D58 !important;
+    fill: #514D58 !important;
+}
+.st-key-main_shell .st-key-logout button:hover {
+    background: #FBE9ED !important;
+    border-color: #E7AAB6 !important;
+}
+
+/* Selected navigation pills use a soft red surface; inactive pills stay white */
+.st-key-main_shell [data-testid="stBaseButton-pillsActive"] {
+    background: #FBE9ED !important;
+    border: 1px solid #E7AAB6 !important;
+}
+.st-key-main_shell [data-testid="stBaseButton-pillsActive"] *,
+.st-key-main_shell [data-testid="stBaseButton-pillsActive"] p {
+    color: #9F1028 !important;
+}
+.st-key-main_shell [data-testid="stBaseButton-pills"] {
+    background: #FFFFFF !important;
+    border: 1px solid #DEDDE3 !important;
+}
+.st-key-main_shell [data-testid="stBaseButton-pills"] *,
+.st-key-main_shell [data-testid="stBaseButton-pills"] p {
+    color: #514D58 !important;
+}
+
+/* Radio buttons, checkboxes and switches */
+.st-key-main_shell [data-testid="stRadio"] label,
+.st-key-main_shell [data-testid="stCheckbox"] label,
+.st-key-main_shell [data-testid="stToggle"] label {
+    color: var(--fi-text) !important;
+}
+.st-key-main_shell [data-testid="stRadio"] [aria-checked="true"],
+.st-key-main_shell [data-testid="stCheckbox"] [aria-checked="true"] {
+    color: var(--fi-red) !important;
+}
+
+/* Form surfaces and feedback blocks */
+.st-key-main_shell [data-testid="stForm"] {
+    background: #FFFFFF !important;
+    border: 1px solid #E5E2E8 !important;
+}
+.st-key-main_shell [data-testid="stAlert"] {
+    color: #302D35 !important;
+    border-radius: 10px;
+}
+.st-key-main_shell [data-testid="stAlert"] p {
+    color: inherit !important;
+}
 """
 
     @classmethod
@@ -491,7 +652,7 @@ class LoginView:
                     with st.form("login_form"):
                         email = st.text_input(
                             "Institutional Email",
-                            placeholder="name@mcm.edu.ph",
+                            placeholder="name@mapua.edu.ph",
                         )
                         password = st.text_input(
                             "Password",
