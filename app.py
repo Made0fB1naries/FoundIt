@@ -510,8 +510,13 @@ class Page(ABC):
         self._state = state
 
     def _campus_filter(self, key):
-        campuses = getattr(self._service.institution, "campuses", []) if self._service and self._service.institution else []
-        options = [self.ALL_CAMPUSES] + (campuses or [])
+        try:
+    institution = getattr(self._service, "institution", None)
+    campuses = institution.campuses if institution and hasattr(institution, "campuses") else []
+except Exception:
+    campuses = []
+
+options = [self.ALL_CAMPUSES] + (campuses if isinstance(campuses, list) else [])
         choice = st.selectbox("Campus", options, key=key, label_visibility="collapsed")
         return None if choice == self.ALL_CAMPUSES else choice
 
