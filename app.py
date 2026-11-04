@@ -870,7 +870,7 @@ class LoginView:
                     with st.form("login_form"):
                         email = st.text_input(
                             "Institutional Email",
-                            placeholder="name@mapua.edu.ph",
+                            placeholder="name@mcm.edu.ph",
                         )
                         password = st.text_input(
                             "Password",
