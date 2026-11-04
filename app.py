@@ -29,6 +29,10 @@ class Theme:
     --page: #F7F7F8;
 }
 
+html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+}
 html, body, .stApp, button, input, textarea, label, p, h1, h2, h3 {
     font-family: 'Inter', sans-serif;
 }
@@ -36,11 +40,23 @@ html, body, .stApp, button, input, textarea, label, p, h1, h2, h3 {
     background: var(--page);
     color: var(--ink);
 }
-[data-testid="stHeader"] { background: transparent; }
+[data-testid="stHeader"] {
+    height: 0 !important;
+    min-height: 0 !important;
+    background: transparent !important;
+}
 [data-testid="stToolbar"] { right: 1rem; }
+[data-testid="stAppViewContainer"] > .main,
+[data-testid="stAppViewContainer"] > .main > div,
+[data-testid="stAppViewBlockContainer"],
+[data-testid="stMainBlockContainer"],
 .block-container {
     max-width: 100% !important;
-    padding: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-top: 0 !important;
 }
 footer { visibility: hidden; }
 
@@ -52,6 +68,7 @@ footer { visibility: hidden; }
 .st-key-login_visual {
     min-height: 100vh;
     height: 100vh;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -60,7 +77,8 @@ footer { visibility: hidden; }
     border-right: 1px solid #E9E9EB;
 }
 .st-key-login_visual h1 {
-    color: #202124;
+    color: #FFFFFF !important;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.42);
     font-size: clamp(2rem, 3.2vw, 3.3rem);
     line-height: 1.08;
     letter-spacing: -0.045em;
@@ -68,7 +86,8 @@ footer { visibility: hidden; }
     margin: 0 0 14px;
 }
 .st-key-login_visual p {
-    color: #555B65;
+    color: #FFFFFF !important;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.42);
     font-size: 1rem;
     line-height: 1.65;
     max-width: 430px;
@@ -138,17 +157,26 @@ footer { visibility: hidden; }
 }
 .st-key-login_panel [data-baseweb="input"] {
     min-height: 46px;
-    border: 1px solid #D9DDE3;
+    border: 1px solid #D9DDE3 !important;
     border-radius: 8px;
-    background: #FFFFFF;
+    background: #F3F4F6 !important;
+    box-shadow: none !important;
+}
+.st-key-login_panel [data-baseweb="input"] > div {
+    background: #F3F4F6 !important;
 }
 .st-key-login_panel [data-baseweb="input"]:focus-within {
     border-color: var(--mapua-red);
     box-shadow: 0 0 0 1px var(--mapua-red);
 }
 .st-key-login_panel input {
-    color: #202124;
+    color: #202124 !important;
+    background: #F3F4F6 !important;
     font-size: 0.93rem;
+}
+.st-key-login_panel input::placeholder {
+    color: #8A9099 !important;
+    opacity: 1;
 }
 .st-key-login_panel .stFormSubmitButton > button {
     width: 100%;
@@ -267,7 +295,7 @@ footer { visibility: hidden; }
 .st-key-login_visual {{
     background-image: url("data:{mime_type};base64,{image_data}");
     background-size: cover;
-    background-position: center;
+    background-position: center center;
     background-repeat: no-repeat;
 }}
 """
