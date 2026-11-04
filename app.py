@@ -30,6 +30,10 @@ class Theme:
     --page: #F7F7F8;
 }
 
+html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+}
 html, body, .stApp, button, input, textarea, label, p, h1, h2, h3 {
     font-family: 'Inter', sans-serif;
 }
@@ -37,11 +41,23 @@ html, body, .stApp, button, input, textarea, label, p, h1, h2, h3 {
     background: var(--page);
     color: var(--ink);
 }
-[data-testid="stHeader"] { background: transparent; }
+[data-testid="stHeader"] {
+    height: 0 !important;
+    min-height: 0 !important;
+    background: transparent !important;
+}
 [data-testid="stToolbar"] { right: 1rem; }
+[data-testid="stAppViewContainer"] > .main,
+[data-testid="stAppViewContainer"] > .main > div,
+[data-testid="stAppViewBlockContainer"],
+[data-testid="stMainBlockContainer"],
 .block-container {
     max-width: 100% !important;
-    padding: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-top: 0 !important;
 }
 footer { visibility: hidden; }
 
@@ -53,6 +69,7 @@ footer { visibility: hidden; }
 .st-key-login_visual {
     min-height: 100vh;
     height: 100vh;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -61,7 +78,8 @@ footer { visibility: hidden; }
     border-right: 1px solid #E9E9EB;
 }
 .st-key-login_visual h1 {
-    color: #202124;
+    color: #FFFFFF !important;
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.42);
     font-size: clamp(2rem, 3.2vw, 3.3rem);
     line-height: 1.08;
     letter-spacing: -0.045em;
@@ -69,7 +87,8 @@ footer { visibility: hidden; }
     margin: 0 0 14px;
 }
 .st-key-login_visual p {
-    color: #555B65;
+    color: #FFFFFF !important;
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.42);
     font-size: 1rem;
     line-height: 1.65;
     max-width: 430px;
@@ -139,17 +158,26 @@ footer { visibility: hidden; }
 }
 .st-key-login_panel [data-baseweb="input"] {
     min-height: 46px;
-    border: 1px solid #D9DDE3;
+    border: 1px solid #D9DDE3 !important;
     border-radius: 8px;
-    background: #FFFFFF;
+    background: #F3F4F6 !important;
+    box-shadow: none !important;
+}
+.st-key-login_panel [data-baseweb="input"] > div {
+    background: #F3F4F6 !important;
 }
 .st-key-login_panel [data-baseweb="input"]:focus-within {
     border-color: var(--mapua-red);
     box-shadow: 0 0 0 1px var(--mapua-red);
 }
 .st-key-login_panel input {
-    color: #202124;
+    color: #202124 !important;
+    background: #F3F4F6 !important;
     font-size: 0.93rem;
+}
+.st-key-login_panel input::placeholder {
+    color: #8A9099 !important;
+    opacity: 1;
 }
 .st-key-login_panel .stFormSubmitButton > button {
     width: 100%;
@@ -191,6 +219,19 @@ footer { visibility: hidden; }
 }
 
 /* Main application */
+.st-key-main_shell {
+    width: 100%;
+    max-width: 1180px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding: 2rem 2.25rem 3rem !important;
+    box-sizing: border-box;
+}
+@media (max-width: 800px) {
+    .st-key-main_shell {
+        padding: 1.25rem 1rem 2rem !important;
+    }
+}
 .fi-brand { display: flex; align-items: center; gap: 12px; }
 .fi-logo {
     width: 44px; height: 44px; border-radius: 12px;
@@ -254,10 +295,388 @@ footer { visibility: hidden; }
 .st-key-feed_search input, .st-key-claimed_search input { padding-left: 18px !important; }
 .st-key-feed_campus [data-baseweb="select"] > div, .st-key-claimed_campus [data-baseweb="select"] > div { border-radius: 999px !important; }
 [data-testid="stImage"] img { border-radius: 12px; }
+
+/* MCM light palette: improve contrast throughout the signed-in app */
+:root {
+    --fi-text: #24232B;
+    --fi-secondary: #55515D;
+    --fi-muted: #706B78;
+    --fi-red: #B5122B;
+    --fi-red-hover: #940E23;
+    --fi-border: #DEDDE3;
+    --fi-input: #F4F3F6;
+    --fi-soft-red: #FBE9ED;
+}
+
+/* Streamlit text, headings, captions and widget labels */
+.st-key-main_shell,
+.st-key-main_shell [data-testid="stMarkdown"],
+.st-key-main_shell [data-testid="stMarkdown"] p,
+.st-key-main_shell [data-testid="stMarkdown"] li,
+.st-key-main_shell [data-testid="stMarkdown"] span,
+.st-key-main_shell [data-testid="stCaptionContainer"],
+.st-key-main_shell [data-testid="stCaptionContainer"] p,
+.st-key-main_shell label,
+.st-key-main_shell legend,
+.st-key-main_shell [data-testid="stWidgetLabel"] p {
+    color: var(--fi-text) !important;
+}
+.st-key-main_shell h1,
+.st-key-main_shell h2,
+.st-key-main_shell h3,
+.st-key-main_shell h4 {
+    color: #211F27 !important;
+    font-weight: 700;
+}
+.st-key-main_shell [data-testid="stCaptionContainer"] p,
+.st-key-main_shell .fi-sub,
+.st-key-main_shell .fi-role,
+.st-key-main_shell .fi-meta {
+    color: var(--fi-muted) !important;
+}
+.st-key-main_shell .fi-title {
+    color: #211F27 !important;
+}
+.st-key-main_shell .fi-desc {
+    color: #514D58 !important;
+}
+.st-key-main_shell .fi-empty {
+    color: #625D69 !important;
+    background: #FFFFFF;
+}
+
+/* Inputs, text areas and dropdowns */
+.st-key-main_shell [data-baseweb="input"],
+.st-key-main_shell [data-baseweb="base-input"],
+.st-key-main_shell [data-baseweb="textarea"],
+.st-key-main_shell [data-baseweb="select"] > div {
+    background: var(--fi-input) !important;
+    border: 1px solid var(--fi-border) !important;
+    color: var(--fi-text) !important;
+    box-shadow: none !important;
+}
+.st-key-main_shell input,
+.st-key-main_shell textarea {
+    color: var(--fi-text) !important;
+    background: transparent !important;
+    -webkit-text-fill-color: var(--fi-text) !important;
+}
+.st-key-main_shell input::placeholder,
+.st-key-main_shell textarea::placeholder {
+    color: #817B88 !important;
+    -webkit-text-fill-color: #817B88 !important;
+    opacity: 1 !important;
+}
+.st-key-main_shell [data-baseweb="select"] *,
+.st-key-main_shell [data-baseweb="popover"] *,
+[data-baseweb="menu"] * {
+    color: var(--fi-text) !important;
+}
+.st-key-main_shell [data-baseweb="select"] svg {
+    fill: #625D69 !important;
+}
+
+/* Consistent MCM-red primary buttons and readable neutral buttons */
+.st-key-main_shell .stButton > button,
+.st-key-main_shell .stFormSubmitButton > button,
+.st-key-main_shell [data-testid^="stBaseButton-"] {
+    background: var(--fi-red) !important;
+    color: #FFFFFF !important;
+    border: 1px solid var(--fi-red) !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+.st-key-main_shell .stButton > button:hover,
+.st-key-main_shell .stFormSubmitButton > button:hover,
+.st-key-main_shell [data-testid^="stBaseButton-"]:hover {
+    background: var(--fi-red-hover) !important;
+    border-color: var(--fi-red-hover) !important;
+}
+.st-key-main_shell .stButton > button *,
+.st-key-main_shell .stFormSubmitButton > button *,
+.st-key-main_shell [data-testid^="stBaseButton-"] * {
+    color: #FFFFFF !important;
+    fill: #FFFFFF !important;
+}
+
+/* Logout remains a quiet outlined button */
+.st-key-main_shell .st-key-logout button {
+    background: #FFFFFF !important;
+    color: #514D58 !important;
+    border: 1px solid #D5D2DA !important;
+}
+.st-key-main_shell .st-key-logout button *,
+.st-key-main_shell .st-key-logout button svg {
+    color: #514D58 !important;
+    fill: #514D58 !important;
+}
+.st-key-main_shell .st-key-logout button:hover {
+    background: #FBE9ED !important;
+    border-color: #E7AAB6 !important;
+}
+
+/* Selected navigation pills use a soft red surface; inactive pills stay white */
+.st-key-main_shell [data-testid="stBaseButton-pillsActive"] {
+    background: #FBE9ED !important;
+    border: 1px solid #E7AAB6 !important;
+}
+.st-key-main_shell [data-testid="stBaseButton-pillsActive"] *,
+.st-key-main_shell [data-testid="stBaseButton-pillsActive"] p {
+    color: #9F1028 !important;
+}
+.st-key-main_shell [data-testid="stBaseButton-pills"] {
+    background: #FFFFFF !important;
+    border: 1px solid #DEDDE3 !important;
+}
+.st-key-main_shell [data-testid="stBaseButton-pills"] *,
+.st-key-main_shell [data-testid="stBaseButton-pills"] p {
+    color: #514D58 !important;
+}
+
+/* Radio buttons, checkboxes and switches */
+.st-key-main_shell [data-testid="stRadio"] label,
+.st-key-main_shell [data-testid="stCheckbox"] label,
+.st-key-main_shell [data-testid="stToggle"] label {
+    color: var(--fi-text) !important;
+}
+.st-key-main_shell [data-testid="stRadio"] [aria-checked="true"],
+.st-key-main_shell [data-testid="stCheckbox"] [aria-checked="true"] {
+    color: var(--fi-red) !important;
+}
+
+/* Soft grey controls across Feed, Claimed, and Report */
+.st-key-main_shell [data-baseweb="input"],
+.st-key-main_shell [data-baseweb="base-input"],
+.st-key-main_shell [data-baseweb="textarea"],
+.st-key-main_shell [data-baseweb="select"] > div,
+.st-key-main_shell [data-testid="stDateInput"] input,
+.st-key-main_shell [data-testid="stNumberInput"] input {
+    background: #F3F4F6 !important;
+    border: 1px solid #D8DADF !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+.st-key-main_shell [data-baseweb="input"] > div,
+.st-key-main_shell [data-baseweb="base-input"] > div,
+.st-key-main_shell [data-baseweb="textarea"] > div,
+.st-key-main_shell [data-baseweb="select"] > div {
+    background: #F3F4F6 !important;
+}
+.st-key-main_shell input,
+.st-key-main_shell textarea,
+.st-key-main_shell [data-baseweb="select"] *,
+.st-key-main_shell [data-testid="stNumberInput"] input {
+    color: #292730 !important;
+    -webkit-text-fill-color: #292730 !important;
+}
+.st-key-main_shell input::placeholder,
+.st-key-main_shell textarea::placeholder {
+    color: #77737D !important;
+    -webkit-text-fill-color: #77737D !important;
+    opacity: 1 !important;
+}
+.st-key-main_shell [data-baseweb="input"]:focus-within,
+.st-key-main_shell [data-baseweb="textarea"]:focus-within,
+.st-key-main_shell [data-baseweb="select"]:focus-within {
+    border-color: #B8B5BE !important;
+    box-shadow: 0 0 0 1px #B8B5BE !important;
+}
+
+/* Buttons use the same quiet grey surface as the login input fields */
+.st-key-main_shell .stButton > button,
+.st-key-main_shell .stFormSubmitButton > button,
+.st-key-main_shell [data-testid^="stBaseButton-"] {
+    background: #F3F4F6 !important;
+    color: #34313B !important;
+    border: 1px solid #D8DADF !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+.st-key-main_shell .stButton > button:hover,
+.st-key-main_shell .stFormSubmitButton > button:hover,
+.st-key-main_shell [data-testid^="stBaseButton-"]:hover {
+    background: #E7E8EB !important;
+    border-color: #C9CBD1 !important;
+}
+.st-key-main_shell .stButton > button *,
+.st-key-main_shell .stFormSubmitButton > button *,
+.st-key-main_shell [data-testid^="stBaseButton-"] * {
+    color: #34313B !important;
+    fill: #34313B !important;
+}
+
+/* Search and campus filters have a soft grey pill appearance */
+.st-key-main_shell .st-key-feed_search [data-baseweb="input"],
+.st-key-main_shell .st-key-claimed_search [data-baseweb="input"],
+.st-key-main_shell .st-key-feed_campus [data-baseweb="select"] > div,
+.st-key-main_shell .st-key-claimed_campus [data-baseweb="select"] > div {
+    background: #F3F4F6 !important;
+    border: 1px solid #D8DADF !important;
+}
+.st-key-main_shell .st-key-feed_search input,
+.st-key-main_shell .st-key-claimed_search input {
+    background: transparent !important;
+    color: #292730 !important;
+}
+
+/* Report tab uploader/drop area */
+.st-key-main_shell [data-testid="stFileUploader"] section,
+.st-key-main_shell [data-testid="stFileUploader"] [data-testid="stFileUploaderDropzone"] {
+    background: #F3F4F6 !important;
+    border: 1px dashed #C9CBD1 !important;
+    border-radius: 10px !important;
+}
+.st-key-main_shell [data-testid="stFileUploader"] *,
+.st-key-main_shell [data-testid="stFileUploader"] small {
+    color: #514D58 !important;
+}
+.st-key-main_shell [data-testid="stFileUploader"] button {
+    background: #E7E8EB !important;
+    color: #34313B !important;
+    border: 1px solid #D0D2D8 !important;
+}
+.st-key-main_shell [data-testid="stFileUploader"] button * {
+    color: #34313B !important;
+}
+
+/* Radio controls and labels in the report/status forms */
+.st-key-main_shell [data-testid="stRadio"] label,
+.st-key-main_shell [data-testid="stCheckbox"] label,
+.st-key-main_shell [data-testid="stWidgetLabel"] p {
+    color: #34313B !important;
+}
+.st-key-main_shell [data-testid="stRadio"] [data-baseweb="radio"] div:first-child {
+    border-color: #77737D !important;
+}
+
+/* Form surfaces and feedback blocks */
+.st-key-main_shell [data-testid="stForm"] {
+    background: #FFFFFF !important;
+    border: 1px solid #E5E2E8 !important;
+}
+.st-key-main_shell [data-testid="stAlert"] {
+    color: #302D35 !important;
+    border-radius: 10px;
+}
+.st-key-main_shell [data-testid="stAlert"] p {
+    color: inherit !important;
+}
+
+/* High-contrast grey controls requested for the signed-in pages.
+   Login fields are intentionally excluded. */
+:root {
+    --fi-control-grey: #666B75;
+    --fi-control-grey-hover: #555A64;
+    --fi-control-border: #555A64;
+    --fi-control-white: #FFFFFF;
+    --fi-control-placeholder: #F0F1F3;
+}
+
+/* Main navigation: Feed, Claimed, Report, Update status */
+.st-key-main_shell [data-testid="stBaseButton-pills"],
+.st-key-main_shell [data-testid="stBaseButton-pillsActive"] {
+    background: var(--fi-control-grey) !important;
+    border: 1px solid var(--fi-control-border) !important;
+    color: var(--fi-control-white) !important;
+    border-radius: 8px !important;
+}
+.st-key-main_shell [data-testid="stBaseButton-pills"] *,
+.st-key-main_shell [data-testid="stBaseButton-pillsActive"] *,
+.st-key-main_shell [data-testid="stBaseButton-pills"] p,
+.st-key-main_shell [data-testid="stBaseButton-pillsActive"] p {
+    color: var(--fi-control-white) !important;
+    fill: var(--fi-control-white) !important;
+    opacity: 1 !important;
+}
+.st-key-main_shell [data-testid="stBaseButton-pills"]:hover,
+.st-key-main_shell [data-testid="stBaseButton-pillsActive"]:hover {
+    background: var(--fi-control-grey-hover) !important;
+    border-color: var(--fi-control-grey-hover) !important;
+}
+
+/* Feed and Claimed search fields, plus all Report and Update Status fields */
+.st-key-main_shell .st-key-feed_search [data-baseweb="input"],
+.st-key-main_shell .st-key-claimed_search [data-baseweb="input"],
+.st-key-main_shell [data-testid="stTextInput"] [data-baseweb="input"],
+.st-key-main_shell [data-testid="stTextArea"] [data-baseweb="textarea"],
+.st-key-main_shell [data-testid="stSelectbox"] [data-baseweb="select"] > div {
+    background: var(--fi-control-grey) !important;
+    border: 1px solid var(--fi-control-border) !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+.st-key-main_shell .st-key-feed_search input,
+.st-key-main_shell .st-key-claimed_search input,
+.st-key-main_shell [data-testid="stTextInput"] input,
+.st-key-main_shell [data-testid="stTextArea"] textarea {
+    background: transparent !important;
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+    caret-color: #FFFFFF !important;
+}
+.st-key-main_shell .st-key-feed_search input::placeholder,
+.st-key-main_shell .st-key-claimed_search input::placeholder,
+.st-key-main_shell [data-testid="stTextInput"] input::placeholder,
+.st-key-main_shell [data-testid="stTextArea"] textarea::placeholder {
+    color: var(--fi-control-placeholder) !important;
+    -webkit-text-fill-color: var(--fi-control-placeholder) !important;
+    opacity: 1 !important;
+}
+
+/* Campus filters and the item/campus/category selectors */
+.st-key-main_shell [data-testid="stSelectbox"] [data-baseweb="select"] > div,
+.st-key-main_shell [data-testid="stSelectbox"] [data-baseweb="select"] > div *,
+.st-key-main_shell [data-testid="stSelectbox"] [data-baseweb="select"] svg {
+    color: #FFFFFF !important;
+    fill: #FFFFFF !important;
+}
+.st-key-main_shell [data-testid="stSelectbox"] [data-baseweb="select"] [data-testid="stSelectboxVirtualDropdown"] {
+    color: #24232B !important;
+}
+/* The opened dropdown menu remains white with dark text for readability. */
+.st-key-main_shell [data-baseweb="popover"] [role="option"],
+.st-key-main_shell [data-baseweb="popover"] [role="option"] *,
+[data-baseweb="menu"] [role="option"],
+[data-baseweb="menu"] [role="option"] * {
+    background: #FFFFFF !important;
+    color: #24232B !important;
+}
+
+/* Update Status: Pending Claim and Claimed radio choices */
+.st-key-main_shell [data-testid="stRadio"] [role="radiogroup"] label {
+    background: var(--fi-control-grey) !important;
+    border: 1px solid var(--fi-control-border) !important;
+    border-radius: 8px !important;
+    padding: 8px 14px !important;
+    margin-right: 8px !important;
+}
+.st-key-main_shell [data-testid="stRadio"] [role="radiogroup"] label *,
+.st-key-main_shell [data-testid="stRadio"] [role="radiogroup"] label p,
+.st-key-main_shell [data-testid="stRadio"] [role="radiogroup"] label span {
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+}
+.st-key-main_shell [data-testid="stRadio"] [role="radiogroup"] label:has(input:checked) {
+    background: var(--fi-control-grey-hover) !important;
+    border-color: #3F444D !important;
+}
+
+/* Keep field labels dark on the white page, not white on grey. */
+.st-key-main_shell [data-testid="stWidgetLabel"] p,
+.st-key-main_shell [data-testid="stTextInput"] label,
+.st-key-main_shell [data-testid="stTextArea"] label,
+.st-key-main_shell [data-testid="stSelectbox"] label,
+.st-key-main_shell [data-testid="stRadio"] > label {
+    color: #292730 !important;
+}
+
 """
 
     @classmethod
     def apply(cls):
+        # Place your background image at assets/mapua_background.png.
+        # The image is embedded into the CSS at runtime, so it works when
+        # the app is deployed from GitHub/Streamlit Community Cloud.
         image_path = Path(__file__).parent / "assets" / "mapua_background.png"
         image_css = ""
         if image_path.is_file():
@@ -268,7 +687,7 @@ footer { visibility: hidden; }
 .st-key-login_visual {{
     background-image: url("data:{mime_type};base64,{image_data}");
     background-size: cover;
-    background-position: center;
+    background-position: center center;
     background-repeat: no-repeat;
 }}
 """
@@ -421,6 +840,8 @@ class LoginView:
         self._institution = institution
 
     def render(self):
+        # The left panel is intentionally image-free. Add your own background
+        # image to .st-key-login_visual in your preferred design workflow.
         with st.container(key="login_shell"):
             visual, panel = st.columns([1.45, 1], gap=None)
 
@@ -449,7 +870,7 @@ class LoginView:
                     with st.form("login_form"):
                         email = st.text_input(
                             "Institutional Email",
-                            placeholder="name@mcm.edu.ph",
+                            placeholder="name@mapua.edu.ph",
                         )
                         password = st.text_input(
                             "Password",
@@ -512,11 +933,11 @@ class Page(ABC):
     def _campus_filter(self, key):
         try:
             institution = getattr(self._service, "institution", None)
-            campuses = institution.campuses if institution and hasattr(institution, "campuses") else []
+            campuses = list(institution.campuses) if institution and hasattr(institution, "campuses") else []
         except Exception:
             campuses = []
 
-        options = [self.ALL_CAMPUSES] + (campuses if isinstance(campuses, list) else [])
+        options = [self.ALL_CAMPUSES] + campuses
         choice = st.selectbox("Campus", options, key=key, label_visibility="collapsed")
         return None if choice == self.ALL_CAMPUSES else choice
 
@@ -554,7 +975,7 @@ class FeedPage(Page):
         with col_campus:
             campus = self._campus_filter("feed_campus")
 
-        # Use Prolog logic engine matching if active; fallback to standard string search
+        # Use Prolog logic engine matching if query present; fallback to standard string search
         posts = self._service.possible_matches(query, campus=campus) if query.strip() else self._service.active(campus, query)
         if not posts:
             EmptyState.show("No items match your search or filter.")
@@ -629,7 +1050,7 @@ class UpdateStatusPage(AdminPage):
         return f"{post.item.name} ({post.item.tracking.status.value}) - {post.user.username}"
 
     def _render(self, user):
-        if self._state.status_msg:
+        if self._state.status_msg:  # message saved before the rerun
             st.success(self._state.status_msg)
             self._state.status_msg = None
 
@@ -673,7 +1094,7 @@ class FoundItApp:
             repository = SupabasePostRepository(
                 self._gateway, catalog, SupabaseImageStorage(self._gateway), self._institution.default_campus
             )
-            
+
             # Instantiating the Prolog engine with fallback support
             try:
                 matcher = FoundItLogicEngine()
@@ -692,19 +1113,21 @@ class FoundItApp:
         st.rerun()
 
     def _render_main(self, user):
-        service = self._service()
-        service.refresh_if_stale()
-        if AppBar(self._institution, user).render():
-            self._logout()
+        # Keep the authenticated app centered and comfortably sized on wide screens.
+        with st.container(key="main_shell"):
+            service = self._service()
+            service.refresh_if_stale()
+            if AppBar(self._institution, user).render():
+                self._logout()
 
-        if not user.can_manage_items():
-            st.caption("Standard account: only administrators can report or update items.")
+            if not user.can_manage_items():
+                st.caption("Standard account: only administrators can report or update items.")
 
-        navigation = st.pills(
-            "Section", user.sections(), default="Feed", key="nav", label_visibility="collapsed"
-        ) or "Feed"
-        pages = {cls.title: cls(service, self._state) for cls in self.PAGES}
-        pages.get(navigation, pages["Feed"]).render(user)
+            navigation = st.pills(
+                "Section", user.sections(), default="Feed", key="nav", label_visibility="collapsed"
+            ) or "Feed"
+            pages = {cls.title: cls(service, self._state) for cls in self.PAGES}
+            pages.get(navigation, pages["Feed"]).render(user)
 
     def run(self):
         Theme.apply()
