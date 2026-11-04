@@ -257,9 +257,6 @@ footer { visibility: hidden; }
 
     @classmethod
     def apply(cls):
-        # Place your background image at assets/mapua_background.png.
-        # The image is embedded into the CSS at runtime, so it works when
-        # the app is deployed from GitHub/Streamlit Community Cloud.
         image_path = Path(__file__).parent / "assets" / "mapua_background.png"
         image_css = ""
         if image_path.is_file():
