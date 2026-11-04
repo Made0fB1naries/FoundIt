@@ -560,6 +560,115 @@ footer { visibility: hidden; }
 .st-key-main_shell [data-testid="stAlert"] p {
     color: inherit !important;
 }
+
+/* High-contrast grey controls requested for the signed-in pages.
+   Login fields are intentionally excluded. */
+:root {
+    --fi-control-grey: #666B75;
+    --fi-control-grey-hover: #555A64;
+    --fi-control-border: #555A64;
+    --fi-control-white: #FFFFFF;
+    --fi-control-placeholder: #F0F1F3;
+}
+
+/* Main navigation: Feed, Claimed, Report, Update status */
+.st-key-main_shell [data-testid="stBaseButton-pills"],
+.st-key-main_shell [data-testid="stBaseButton-pillsActive"] {
+    background: var(--fi-control-grey) !important;
+    border: 1px solid var(--fi-control-border) !important;
+    color: var(--fi-control-white) !important;
+    border-radius: 8px !important;
+}
+.st-key-main_shell [data-testid="stBaseButton-pills"] *,
+.st-key-main_shell [data-testid="stBaseButton-pillsActive"] *,
+.st-key-main_shell [data-testid="stBaseButton-pills"] p,
+.st-key-main_shell [data-testid="stBaseButton-pillsActive"] p {
+    color: var(--fi-control-white) !important;
+    fill: var(--fi-control-white) !important;
+    opacity: 1 !important;
+}
+.st-key-main_shell [data-testid="stBaseButton-pills"]:hover,
+.st-key-main_shell [data-testid="stBaseButton-pillsActive"]:hover {
+    background: var(--fi-control-grey-hover) !important;
+    border-color: var(--fi-control-grey-hover) !important;
+}
+
+/* Feed and Claimed search fields, plus all Report and Update Status fields */
+.st-key-main_shell .st-key-feed_search [data-baseweb="input"],
+.st-key-main_shell .st-key-claimed_search [data-baseweb="input"],
+.st-key-main_shell [data-testid="stTextInput"] [data-baseweb="input"],
+.st-key-main_shell [data-testid="stTextArea"] [data-baseweb="textarea"],
+.st-key-main_shell [data-testid="stSelectbox"] [data-baseweb="select"] > div {
+    background: var(--fi-control-grey) !important;
+    border: 1px solid var(--fi-control-border) !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+.st-key-main_shell .st-key-feed_search input,
+.st-key-main_shell .st-key-claimed_search input,
+.st-key-main_shell [data-testid="stTextInput"] input,
+.st-key-main_shell [data-testid="stTextArea"] textarea {
+    background: transparent !important;
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+    caret-color: #FFFFFF !important;
+}
+.st-key-main_shell .st-key-feed_search input::placeholder,
+.st-key-main_shell .st-key-claimed_search input::placeholder,
+.st-key-main_shell [data-testid="stTextInput"] input::placeholder,
+.st-key-main_shell [data-testid="stTextArea"] textarea::placeholder {
+    color: var(--fi-control-placeholder) !important;
+    -webkit-text-fill-color: var(--fi-control-placeholder) !important;
+    opacity: 1 !important;
+}
+
+/* Campus filters and the item/campus/category selectors */
+.st-key-main_shell [data-testid="stSelectbox"] [data-baseweb="select"] > div,
+.st-key-main_shell [data-testid="stSelectbox"] [data-baseweb="select"] > div *,
+.st-key-main_shell [data-testid="stSelectbox"] [data-baseweb="select"] svg {
+    color: #FFFFFF !important;
+    fill: #FFFFFF !important;
+}
+.st-key-main_shell [data-testid="stSelectbox"] [data-baseweb="select"] [data-testid="stSelectboxVirtualDropdown"] {
+    color: #24232B !important;
+}
+/* The opened dropdown menu remains white with dark text for readability. */
+.st-key-main_shell [data-baseweb="popover"] [role="option"],
+.st-key-main_shell [data-baseweb="popover"] [role="option"] *,
+[data-baseweb="menu"] [role="option"],
+[data-baseweb="menu"] [role="option"] * {
+    background: #FFFFFF !important;
+    color: #24232B !important;
+}
+
+/* Update Status: Pending Claim and Claimed radio choices */
+.st-key-main_shell [data-testid="stRadio"] [role="radiogroup"] label {
+    background: var(--fi-control-grey) !important;
+    border: 1px solid var(--fi-control-border) !important;
+    border-radius: 8px !important;
+    padding: 8px 14px !important;
+    margin-right: 8px !important;
+}
+.st-key-main_shell [data-testid="stRadio"] [role="radiogroup"] label *,
+.st-key-main_shell [data-testid="stRadio"] [role="radiogroup"] label p,
+.st-key-main_shell [data-testid="stRadio"] [role="radiogroup"] label span {
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
+}
+.st-key-main_shell [data-testid="stRadio"] [role="radiogroup"] label:has(input:checked) {
+    background: var(--fi-control-grey-hover) !important;
+    border-color: #3F444D !important;
+}
+
+/* Keep field labels dark on the white page, not white on grey. */
+.st-key-main_shell [data-testid="stWidgetLabel"] p,
+.st-key-main_shell [data-testid="stTextInput"] label,
+.st-key-main_shell [data-testid="stTextArea"] label,
+.st-key-main_shell [data-testid="stSelectbox"] label,
+.st-key-main_shell [data-testid="stRadio"] > label {
+    color: #292730 !important;
+}
+
 """
 
     @classmethod
