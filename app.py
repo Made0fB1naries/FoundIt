@@ -695,7 +695,7 @@ class FeedPage(Page):
             return
         st.markdown("#### Possible matches")
         st.caption(
-            "Suggested by the Prolog matching rules: pending items that share words with your "
+            "is this what you were looking for?"
             "search, with items from the selected campus first."
         )
         PostGrid(matches, retention_days=self._service.RETENTION_DAYS, key="match_grid").render()
