@@ -10,7 +10,7 @@ import streamlit as st
 import extra_streamlit_components as stx
 
 from models import (AuthService, CategoryCatalog, Institution, LostAndFoundService,
-                    Status, SupabaseImageStorage, SupabasePostRepository, ValidationError, get_gateway)
+                    Status, SupabaseImageStorage, SupabasePostRepository, ValidationError, get_backend)
 from logic_engine import FoundItLogicEngine
 
 
@@ -537,8 +537,6 @@ class LoginView:
         self._institution = institution
 
     def render(self):
-        # The left panel is intentionally image-free. Add your own background
-        # image to .st-key-login_visual in your preferred design workflow.
         with st.container(key="login_shell"):
             visual, panel = st.columns([1.45, 1], gap=None)
 
@@ -747,7 +745,7 @@ class UpdateStatusPage(AdminPage):
         return f"{post.item.name} ({post.item.tracking.status.value}) - {post.user.username}"
 
     def _render(self, user):
-        if self._state.status_msg:  # message saved before the rerun
+        if self._state.status_msg:
             st.success(self._state.status_msg)
             self._state.status_msg = None
 
@@ -779,9 +777,9 @@ class FoundItApp:
     PAGES = (FeedPage, ClaimedPage, ReportPage, UpdateStatusPage)
 
     def __init__(self):
-        self._gateway = get_gateway()
+        self._backend = get_backend()
         self._state = AppState()
-        self._auth = AuthService(self._gateway)
+        self._auth = AuthService(self._backend)
         self._cookies = CookieSession(self._state, self._auth)
         self._institution = Institution("Mapúa Malayan Colleges Mindanao", "Davao City", ["RSY Building", "RG Birrey"])
 
@@ -789,10 +787,9 @@ class FoundItApp:
         if self._state.service is None:
             catalog = CategoryCatalog.default()
             repository = SupabasePostRepository(
-                self._gateway, catalog, SupabaseImageStorage(self._gateway), self._institution.default_campus
+                self._backend, catalog, SupabaseImageStorage(self._backend), self._institution.default_campus
             )
 
-            # Instantiating the Prolog engine with fallback support
             try:
                 matcher = FoundItLogicEngine()
             except Exception as e:
@@ -810,7 +807,6 @@ class FoundItApp:
         st.rerun()
 
     def _render_main(self, user):
-        # Keep the authenticated app centered and comfortably sized on wide screens.
         with st.container(key="main_shell"):
             service = self._service()
             service.refresh_if_stale()
