@@ -1,77 +1,79 @@
 # FoundIt: Campus Lost & Found Hub
 
-A web app where students and faculty can browse found items on campus, and administrators can post items and track them until they are claimed. Built with **Python**, **Streamlit** and **Supabase** for Mapúa Malayan Colleges Mindanao (Davao City).
+A modern, tiered-architecture web application where students and faculty can browse found items on campus, and administrators can post items, manage photos, and track items through their lifecycle. Built with **Python**, **Streamlit**, **Supabase**, and **SWI-Prolog** for Mapúa Malayan Colleges Mindanao (Davao City).
 
 ## Features
 
-- **Feed:** photo cards of unclaimed items, with search and a campus filter (RSY Building, RG Birrey).
-- **Claimed page:** items that were picked up, with a "removed in N days" countdown.
-- **Roles:**
-  - *Student/Faculty* can view the feed and the claimed page.
-  - *Administrators* can also **report** items (photo, name, description, campus, category) and **update status**.
-- **Status flow:** `Pending Claim` → `Claimed`. Claimed items are deleted automatically (row and photo) after 7 days.
-- **Login:** Supabase Auth with email and password, and a cookie so a page refresh keeps you signed in.
-- **Fresh data:** the feed reloads from the database when it is more than 30 seconds old.
+* **Feed & Search:** Photo cards of unclaimed items with keyword search, campus filters (e.g., *RSY Building*, *RG Birrey*), and Prolog-based semantic matching.
+* **Claimed Page:** Items that were picked up, featuring an automated "removed in N days" retention countdown.
+* **Role-Based Access:**
+  * *Students & Faculty:* Access to view the active feed and claimed items page.
+  * *Administrators:* Full access to report new items (with photo uploads), update statuses, and purge items.
+* **Status Flow & Auto-Purge:** `Pending Claim` → `Claimed`. Claimed items and associated storage objects are cleaned up automatically after 7 days.
+* **Institutional Authentication:** Supabase Auth enforced for institutional `@mcm.edu.ph` email addresses with persistent cookie session restoration.
 
-## Tech stack
+## Tech Stack
 
-| Part | Technology |
-|---|---|
+| Component | Technology |
+| --- | --- |
 | Language | Python 3.10+ |
-| Interface | Streamlit, with custom HTML and CSS for the dark card UI |
-| Login | Supabase Auth |
-| Database | Supabase (PostgreSQL) `posts` table |
-| Photos | Supabase Storage `item-images` bucket |
-| Cookie session | `extra-streamlit-components` |
+| Interface | Streamlit (Custom HTML/CSS card views & pills navigation) |
+| Auth & DB | Supabase (PostgreSQL `posts` table) |
+| Media Storage | Supabase Storage (`item-images` bucket) |
+| Match Engine | SWI-Prolog via `pyswip` (`logic_engine.py` & `matching_rules.pl`) |
+| Session Handling | `extra-streamlit-components` |
 
-## Project structure
+## Project Structure
 
-```
+```text
 .
-├── app.py                  # Streamlit UI: pages, cards, login, navigation
-├── models.py               # Domain classes, Supabase access, business rules
-├── requirements.txt
-└── .streamlit/
-    ├── config.toml         # dark theme (committed)
-    └── secrets.toml        # your keys (NOT committed, see below)
+├── .devcontainer/         # Dev container settings
+├── .streamlit/
+│   ├── config.toml        # Dark theme configuration
+│   └── secrets.toml       # Environment keys & credentials (GIT-IGNORED)
+├── assets/                # Static UI assets and branding
+├── app.py                 # Streamlit UI layer & page views
+├── backend.py             # API Gateway & Supabase SDK interface
+├── functional.py          # Functional utilities & query helpers
+├── logic_engine.py        # Prolog integration wrapper for item matching
+├── matching_rules.pl      # Prolog knowledge base & inference rules
+├── models.py              # Domain entities, repositories, & storage adapters
+├── packages.txt           # Linux system dependencies (swi-prolog-nox)
+├── requirements.txt       # Python package dependencies
+└── README.md              # Documentation
 ```
 
-## Getting started
+## Getting Started
 
 ### 1. Prerequisites
 
-- Python 3.10 or newer
-- A free [Supabase](https://supabase.com) account
-- Streamlit **1.40 or newer** (the app uses `st.pills`, which older versions do not have)
+* Python 3.10 or newer
+* [SWI-Prolog](https://www.swi-prolog.org/) installed locally (`swipl`)
+* A free [Supabase](https://supabase.com) project
+* Streamlit **1.40 or newer**
 
-### 2. Clone and install
+### 2. Installation
+
+Clone the repository and install dependencies:
 
 ```bash
 git clone https://github.com/Made0fB1naries/FoundIt-Prototype-redesigned-.git
 cd FoundIt-Prototype-redesigned-
 
 python -m venv .venv
-# Windows:
+
+# Windows
 .venv\Scripts\activate
-# macOS/Linux:
+# macOS / Linux
 source .venv/bin/activate
 
 pip install -r requirements.txt
 ```
 
-`requirements.txt` should contain:
+### 3. Supabase Configuration
 
-```
-streamlit
-supabase
-extra-streamlit-components
-```
-
-### 3. Set up Supabase
-
-Create a new project, then do the following.
-
-**a) Create the `posts` table** (SQL Editor → New query → Run):
+**a) Database Table Setup:**
+Run the following query in your Supabase SQL Editor:
 
 ```sql
 create table public.posts (
@@ -87,102 +89,51 @@ create table public.posts (
   status           text not null default 'Pending Claim',
   date_claimed     timestamptz
 );
-```
 
-**b) Make the table read-only for the public key.** The app writes with the secret key, which bypasses these rules, so the public key only needs to read:
-
-```sql
 alter table public.posts enable row level security;
 
 create policy "Public read posts" on public.posts
   for select to anon, authenticated using (true);
 ```
 
-**c) Create the photo bucket.** Storage → New bucket → name it exactly `item-images` and turn on **Public bucket**. No storage policies are needed, because uploads and deletes use the secret key.
+**b) Storage Bucket:**
+Create a bucket named **`item-images`** under **Storage** and switch **Public Bucket** to **ON**.
 
-**d) Create user accounts.** Authentication → Users → Add user → Create new user (tick *Auto Confirm User*). Create one account for each student, faculty member or admin. To stop strangers from registering, turn off **Allow new users to sign up** in the Authentication settings.
+### 4. Configure Secrets
 
-**e) Copy your keys.** Project Settings → API Keys:
-
-- Project URL
-- **Publishable key** (`sb_publishable_...`)
-- **Secret key** (`sb_secret_...`)
-
-### 4. Add your secrets
-
-Create the file `.streamlit/secrets.toml`:
+Create `.streamlit/secrets.toml`:
 
 ```toml
 SUPABASE_URL = "https://YOUR-PROJECT.supabase.co"
-SUPABASE_KEY = "sb_publishable_..."
-SUPABASE_SERVICE_KEY = "sb_secret_..."
-ADMIN_EMAILS = "admin1@school.edu, admin2@school.edu"
+SUPABASE_KEY = "your_supabase_anon_key"
+SUPABASE_SERVICE_KEY = "your_supabase_service_role_key"
+ADMIN_EMAILS = "admin1@mcm.edu.ph, admin2@mcm.edu.ph"
 ```
 
-- Each value must stay on **one line**.
-- `ADMIN_EMAILS` is a comma-separated list. Only these exact emails (not case sensitive) become administrators; everyone else is a standard user.
-- **Never commit this file.** Add it to `.gitignore`:
+> **Note:** Ensure `.streamlit/secrets.toml` remains inside your `.gitignore` to protect API keys.
 
-```
-.streamlit/secrets.toml
-__pycache__/
-.venv/
-```
-
-### 5. Theme (recommended)
-
-Create `.streamlit/config.toml` so the built-in widgets match the black UI:
-
-```toml
-[theme]
-base = "dark"
-primaryColor = "#A8C7FA"
-backgroundColor = "#000000"
-secondaryBackgroundColor = "#121212"
-textColor = "#E3E3E3"
-font = "sans serif"
-```
-
-### 6. Run
+### 5. Running the App
 
 ```bash
 streamlit run app.py
 ```
 
-Open the link it prints (usually http://localhost:8501) and sign in with a Supabase user.
+## Deploying on Streamlit Community Cloud
 
-## Deploy on Streamlit Community Cloud
-
-1. Push the project to GitHub (without `secrets.toml`).
-2. Go to [share.streamlit.io](https://share.streamlit.io) → **New app**, pick the repo and set the main file to `app.py`.
-3. Open **Advanced settings → Secrets** and paste the same four lines from step 4.
-4. Deploy. If you change the secrets later, reboot the app from **Manage app**.
-
-## How it works
-
-- **Roles:** after login, the email is checked against `ADMIN_EMAILS`. Admins get the Report and Update status pages. The service layer checks admin rights again on every write, so hiding a page is not the only protection.
-- **Reading and writing:** the public key only reads posts. Every insert, status change, photo upload and delete uses the secret key on the server side.
-- **Reporting an item:** the admin uploads a photo (JPG or PNG) and fills in the details. The photo is stored unchanged, and cards show it in a 4:3 frame. The post gets a unique ID.
-- **Claiming:** when an admin sets an item to `Claimed`, the time is saved. After 7 days the row and its photo are removed automatically.
-- **Older data:** rows saved earlier with a status the app no longer uses (for example `Lost`) are shown as `Pending Claim`.
+1. Push your changes to GitHub (ensure `packages.txt` with `swi-prolog-nox` is present in the repository root).
+2. Connect your repo on [Streamlit Cloud](https://share.streamlit.io).
+3. Paste the four config lines into **Advanced Settings → Secrets**.
+4. Deploy the application.
 
 ## Troubleshooting
 
-| Problem | Fix |
-|---|---|
-| `ModuleNotFoundError: extra_streamlit_components` | Install the requirements: `pip install -r requirements.txt`. On Streamlit Cloud, make sure `requirements.txt` is in the repo root. |
-| `KeyError: 'SUPABASE_SERVICE_KEY'` (or another key) | That secret is missing. Check the spelling in `secrets.toml` or the Cloud Secrets box. |
-| `AttributeError: ... has no attribute 'pills'` | Upgrade Streamlit: `pip install -U streamlit`. |
-| "Authentication failed" | Check the email and password in Supabase → Authentication → Users, and that the user is confirmed. |
-| No Report / Update status pages | The email is not in `ADMIN_EMAILS`. Add it exactly, then sign out and in again. |
-| Photos do not show | The `item-images` bucket must be **Public**. |
-| Posting works but nothing saves | The secret key is wrong, or is not the `sb_secret_...` key. |
-
-## Security notes
-
-- Keep `SUPABASE_SERVICE_KEY` only in secrets. It bypasses all database rules.
-- Do not paste real keys in screenshots, issues or commits. If one leaks, rotate it in Supabase → Project Settings → API Keys.
+| Issue | Resolution |
+| --- | --- |
+| `PyswipError` or missing Prolog | Ensure `swi-prolog-nox` is included in `packages.txt` on Streamlit Cloud or installed on your host OS. |
+| `KeyError: 'SUPABASE_SERVICE_KEY'` | Verify secret configuration in `.streamlit/secrets.toml`. |
+| "Unauthorized" on Admin Pages | Check that your logged-in email is added to `ADMIN_EMAILS` using the `@mcm.edu.ph` domain. |
+| Image upload fails (`NULL` in DB) | Verify that `item-images` exists as a **Public** bucket in Supabase Storage. |
 
 ## About
 
-Built as a Python OOP course project.
+Developed as an object-oriented Python software project for Mapúa Malayan Colleges Mindanao.
