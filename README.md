@@ -57,8 +57,8 @@ A modern, tiered-architecture web application where students and faculty can bro
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/Made0fB1naries/FoundIt-Prototype-redesigned-.git
-cd FoundIt-Prototype-redesigned-
+git clone https://github.com/Made0fB1naries/FoundIt.git
+cd FoundIt
 
 python -m venv .venv
 
