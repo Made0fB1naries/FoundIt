@@ -231,9 +231,15 @@ class SupabaseImageStorage:
         try:
             path = f"{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
             client = self._backend._gateway.privileged()
-            client.storage.from_(self.BUCKET).upload(path, file_bytes, {"file-options": {"contentType": "image/jpeg"}})
+            client.storage.from_(self.BUCKET).upload(
+                path, file_bytes, {"file-options": {"contentType": "image/jpeg"}}
+            )
             res = client.storage.from_(self.BUCKET).get_public_url(path)
-            return res
+            
+            # Extract the string URL if response is dict or object
+            if isinstance(res, dict):
+                return res.get("publicUrl") or res.get("public_url")
+            return str(res)
         except Exception:
             return None
 
