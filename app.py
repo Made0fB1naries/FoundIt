@@ -9,9 +9,32 @@ from urllib.parse import quote
 import streamlit as st
 import extra_streamlit_components as stx
 
-from models import (AuthService, CategoryCatalog, Institution, LostAndFoundService,
-                    Status, SupabaseImageStorage, SupabasePostRepository, ValidationError, get_backend)
-from logic_engine import FoundItLogicEngine
+from backend import BackendError, BackendValidationError, FoundItBackend
+from models import (AuthService, CategoryCatalog, Institution, LostAndFoundService, Status,
+                    SupabaseImageStorage, SupabasePostRepository, UserFactory, ValidationError)
+
+try:  # the app still runs without SWI-Prolog; the "Possible matches" panel is then hidden
+    from logic_engine import FoundItLogicEngine
+except ImportError:
+    FoundItLogicEngine = None
+
+
+# ---------------------------------------------------------------- shared resources (created once, reused by every session)
+
+@st.cache_resource
+def get_backend() -> FoundItBackend:
+    return FoundItBackend.create(st.secrets)
+
+
+@st.cache_resource
+def get_matcher():
+    if FoundItLogicEngine is None:
+        return None
+    try:
+        return FoundItLogicEngine()
+    except Exception as exc:  # SWI-Prolog missing or rules file not found
+        print(f"Logic engine unavailable: {exc}")
+        return None
 
 
 # ---------------------------------------------------------------- UI redesign
@@ -251,7 +274,8 @@ footer { visibility: hidden; }
 .fi-role { color: #80868B; font-size: 0.75rem; }
 
 /* Grid Cards */
-.st-key-grid_col_0, .st-key-grid_col_1 { gap: 1rem !important; }
+.st-key-grid_col_0, .st-key-grid_col_1,
+.st-key-match_grid_col_0, .st-key-match_grid_col_1 { gap: 1rem !important; }
 [class*="st-key-card_"] {
     background: #FFFFFF; border: 1px solid #E7E8EB;
     border-radius: 16px; padding: 12px; gap: 0.6rem;
@@ -282,7 +306,6 @@ footer { visibility: hidden; }
     border-radius: 8px !important;
     box-shadow: none !important;
 }
-
 .st-key-main_shell [data-baseweb="input"] > div,
 .st-key-main_shell [data-baseweb="base-input"] > div,
 .st-key-main_shell [data-baseweb="textarea"] > div {
@@ -319,6 +342,15 @@ footer { visibility: hidden; }
 .st-key-main_shell [data-testid="stRadio"] > label {
     color: #202124 !important;
     font-weight: 600;
+}
+
+/* Section headings and captions on the light page */
+.st-key-main_shell [data-testid="stMarkdown"] h4 {
+    color: #202124 !important;
+    font-weight: 700;
+}
+.st-key-main_shell [data-testid="stCaptionContainer"] p {
+    color: #555B65 !important;
 }
 
 /* Search bar pill styling */
@@ -492,10 +524,8 @@ class PostCardView:
     def _chips(self):
         item = self._post.item
         status = item.tracking.status
-        status_str = status.value if hasattr(status, "value") else str(status)
-        css_class = self.STATUS_CLASS.get(status_str, "fi-pending")
-        
-        chips = "" if self._claimed else f'<span class="fi-chip {css_class}">{Html.esc(status_str)}</span>'
+        css_class = self.STATUS_CLASS.get(status, "fi-pending")
+        chips = "" if self._claimed else f'<span class="fi-chip {css_class}">{Html.esc(status)}</span>'
         chips += f'<span class="fi-chip">{Html.esc(item.campus_location)}</span><span class="fi-chip">{Html.esc(item.category.name)}</span>'
         return chips
 
@@ -518,17 +548,19 @@ class PostCardView:
         with st.container(key=key or f"card_{self._post.post_id}"):
             st.markdown(self.html(), unsafe_allow_html=True)
 
+
 class PostGrid:
-    def __init__(self, posts, claimed=False, retention_days=7):
+    def __init__(self, posts, claimed=False, retention_days=7, key="grid"):
         self._posts = posts
         self._claimed = claimed
         self._retention_days = retention_days
+        self._key = key  # container keys must be unique when a page shows two grids
 
     def render(self):
         cols = st.columns(2, gap="small")
         for idx, col in enumerate(cols):
             with col:
-                with st.container(key=f"grid_col_{idx}"):
+                with st.container(key=f"{self._key}_col_{idx}"):
                     for post in self._posts[idx::2]:
                         PostCardView(post, self._claimed, self._retention_days).render()
 
@@ -629,13 +661,7 @@ class Page(ABC):
         self._state = state
 
     def _campus_filter(self, key):
-        try:
-            institution = getattr(self._service, "institution", None)
-            campuses = list(institution.campuses) if institution and hasattr(institution, "campuses") else []
-        except Exception:
-            campuses = []
-
-        options = [self.ALL_CAMPUSES] + campuses
+        options = [self.ALL_CAMPUSES, *self._service.institution.campuses]
         choice = st.selectbox("Campus", options, key=key, label_visibility="collapsed")
         return None if choice == self.ALL_CAMPUSES else choice
 
@@ -659,11 +685,25 @@ class AdminPage(Page):
 class FeedPage(Page):
     title = "Feed"
 
+    def _render_possible_matches(self, query, campus, shown):
+        shown_ids = {post.post_id for post in shown}
+        matches = tuple(
+            post for post in self._service.possible_matches(query, campus)
+            if post.post_id not in shown_ids
+        )
+        if not matches:
+            return
+        st.markdown("#### Possible matches")
+        st.caption(
+            "Suggested by the Prolog matching rules: pending items that share words with your "
+            "search, with items from the selected campus first."
+        )
+        PostGrid(matches, retention_days=self._service.RETENTION_DAYS, key="match_grid").render()
+
     def render(self, user):
         summary = self._service.summary()
-        st.caption(
-            f"{summary.active} unclaimed items · {summary.claimed} claimed items"
-        )
+        st.caption(f"{summary.active} unclaimed items · {summary.claimed} claimed items")
+
         col_search, col_campus = st.columns([3, 1])
         with col_search:
             query = st.text_input(
@@ -673,12 +713,14 @@ class FeedPage(Page):
         with col_campus:
             campus = self._campus_filter("feed_campus")
 
-        # Use Prolog logic engine matching if query present; fallback to standard string search
-        posts = self._service.possible_matches(query, campus=campus) if query.strip() else self._service.active(campus, query)
+        posts = self._service.active(campus, query)
         if not posts:
             EmptyState.show("No items match your search or filter.")
         else:
             PostGrid(posts, retention_days=self._service.RETENTION_DAYS).render()
+
+        # Prolog suggestions are shown in addition to the normal search results
+        self._render_possible_matches(query, campus, posts)
 
 
 class ClaimedPage(Page):
@@ -708,7 +750,7 @@ class ReportPage(AdminPage):
     def _photo_section(self, rk):
         photo = st.file_uploader("Item Photo", type=["jpg", "jpeg", "png"], key=f"r_photo_{rk}")
         if photo is not None:
-            st.image(photo, caption=photo.name, use_container_width=True)
+            st.image(photo, caption=photo.name)
         return photo
 
     def _details_section(self, user, rk, photo):
@@ -722,6 +764,8 @@ class ReportPage(AdminPage):
                 self._service.report(user, name, description, category, campus, photo)
             except ValidationError as e:
                 st.warning(str(e))
+            except BackendError as e:
+                st.error(str(e))
             else:
                 self._state.report_n += 1
                 self._state.report_msg = "Item posted successfully and saved to Supabase!"
@@ -745,16 +789,14 @@ class UpdateStatusPage(AdminPage):
 
     @staticmethod
     def _label(post):
-        status = post.item.tracking.status
-        status_str = status.value if hasattr(status, "value") else str(status)
-        return f"{post.item.name} ({status_str}) - {post.user.username}"
+        return f"{post.item.name} ({post.item.tracking.status}) - {post.user.username}"
 
     def _render(self, user):
         if self._state.status_msg:
             st.success(self._state.status_msg)
             self._state.status_msg = None
 
-        posts = list(reversed(self._service.posts))
+        posts = self._service.posts  # already newest first
         if not posts:
             EmptyState.show("No items available to update.")
             return
@@ -765,15 +807,21 @@ class UpdateStatusPage(AdminPage):
             selected_id = st.selectbox(
                 "Select Item to Update", list(by_id.keys()), format_func=lambda pid: self._label(by_id[pid])
             )
-            new_status = st.radio("Select New Status", [Status.PENDING, Status.CLAIMED], horizontal=True)
+            new_status = st.radio("Select New Status", list(Status.ALL), horizontal=True)
             apply_update = st.button("Apply Status Update")
         with right:
             PostCardView(by_id[selected_id], retention_days=self._service.RETENTION_DAYS).render(key="card_preview")
 
         if apply_update:
-            self._service.set_status(user, selected_id, new_status)
-            self._state.status_msg = f"Status updated to **{new_status}** in Supabase!"
-            st.rerun()
+            try:
+                self._service.set_status(user, selected_id, new_status)
+            except ValidationError as e:
+                st.warning(str(e))
+            except BackendError as e:
+                st.error(str(e))
+            else:
+                self._state.status_msg = f"Status updated to **{new_status}** in Supabase!"
+                st.rerun()
 
 
 # ---------------------------------------------------------------- application
@@ -783,40 +831,43 @@ class FoundItApp:
 
     def __init__(self):
         self._backend = get_backend()
+        self._users = UserFactory.from_setting(st.secrets.get("ADMIN_EMAILS", ""))
         self._state = AppState()
-        self._auth = AuthService(self._backend)
+        self._auth = AuthService(self._backend, self._users)
         self._cookies = CookieSession(self._state, self._auth)
         self._institution = Institution("Mapúa Malayan Colleges Mindanao", "Davao City", ["RSY Building", "RG Birrey"])
 
     def _service(self):
-        if self._state.service is None:
+        if self._state.service is None:  # built after login, so visitors never hit the database
             catalog = CategoryCatalog.default()
             repository = SupabasePostRepository(
-                self._backend, catalog, SupabaseImageStorage(self._backend), self._institution.default_campus
+                self._backend, catalog, self._users, self._institution.default_campus
             )
-
-            try:
-                matcher = FoundItLogicEngine()
-            except Exception as e:
-                matcher = None
-
-            self._state.service = LostAndFoundService(repository, catalog, self._institution, matcher=matcher)
+            self._state.service = LostAndFoundService(
+                repository, SupabaseImageStorage(self._backend), catalog, self._institution,
+                matcher=get_matcher(),
+            )
         return self._state.service
 
     def _logout(self):
         self._state.current_user = None
         self._state.logged_out = True
         self._state.pending_delete = True
-        self._state.service = None
+        self._state.service = None  # drop cached posts
         self._state.reset_navigation()
         st.rerun()
 
     def _render_main(self, user):
         with st.container(key="main_shell"):
-            service = self._service()
-            service.refresh_if_stale()
             if AppBar(self._institution, user).render():
                 self._logout()
+
+            try:
+                service = self._service()
+                service.refresh_if_stale()
+            except BackendError as exc:
+                st.error(f"Could not load items from the database. {exc}")
+                return
 
             if not user.can_manage_items():
                 st.caption("Standard account: only administrators can report or update items.")
@@ -840,7 +891,12 @@ class FoundItApp:
 
 def main():
     st.set_page_config(page_title="FoundIt - Campus Lost & Found", page_icon="F", layout="wide")
-    FoundItApp().run()
+    try:
+        app = FoundItApp()
+    except (BackendError, BackendValidationError) as exc:
+        st.error(f"FoundIt is not configured correctly: {exc}")
+        return
+    app.run()
 
 
 main()
