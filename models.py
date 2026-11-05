@@ -4,7 +4,7 @@ from __future__ import annotations
 import datetime
 from dataclasses import dataclass
 from typing import Any, List, Optional
-
+from supabase import create_client
 import streamlit as st
 from backend import FoundItBackend, BackendError, BackendValidationError
 
@@ -231,13 +231,10 @@ class SupabaseImageStorage:
         try:
             path = f"{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
             
-            # Directly use the client or gateway exposed by FoundItBackend
-            client = getattr(self._backend, "client", None) or getattr(self._backend, "gateway", None)
-            if hasattr(client, "privileged"):
-                client = client.privileged()
-            
-            if not client or not hasattr(client, "storage"):
-                raise RuntimeError("Supabase client or storage client is not initialized.")
+            # Initialize the Supabase client directly using Streamlit secrets
+            supabase_url = st.secrets["SUPABASE_URL"]
+            supabase_key = st.secrets.get("SUPABASE_SERVICE_KEY") or st.secrets["SUPABASE_KEY"]
+            client = create_client(supabase_url, supabase_key)
 
             # Upload file bytes to Supabase storage
             client.storage.from_(self.BUCKET).upload(
