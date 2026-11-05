@@ -765,7 +765,7 @@ class UpdateStatusPage(AdminPage):
             selected_id = st.selectbox(
                 "Select Item to Update", list(by_id.keys()), format_func=lambda pid: self._label(by_id[pid])
             )
-            new_status = st.radio("Select New Status", [s.value for s in Status], horizontal=True)
+            new_status = st.radio("Select New Status", [Status.PENDING, Status.CLAIMED], horizontal=True)
             apply_update = st.button("Apply Status Update")
         with right:
             PostCardView(by_id[selected_id], retention_days=self._service.RETENTION_DAYS).render(key="card_preview")
