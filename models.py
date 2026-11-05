@@ -91,6 +91,12 @@ class User:
     def can_manage_items(self) -> bool:
         return self.role.lower() == "admin"
 
+    def sections(self) -> list[str]:
+        """Returns the available navigation sections based on user role."""
+        if self.can_manage_items():
+            return ["Feed", "Claimed", "Report", "Update status"]
+        return ["Feed", "Claimed"]
+
 
 class UserFactory:
     @staticmethod
