@@ -220,7 +220,7 @@ class AuthResult:
 
 
 class SupabaseImageStorage:
-    BUCKET = "item-images"
+    BUCKET = "item-images" 
 
     def __init__(self, backend: FoundItBackend):
         self._backend = backend
@@ -231,16 +231,20 @@ class SupabaseImageStorage:
         try:
             path = f"{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
             client = self._backend._gateway.privileged()
+            
+            # Upload file bytes to Supabase storage
             client.storage.from_(self.BUCKET).upload(
-                path, file_bytes, {"file-options": {"contentType": "image/jpeg"}}
+                path, file_bytes, file_options={"content-type": "image/jpeg"}
             )
+            
+            # Get public URL
             res = client.storage.from_(self.BUCKET).get_public_url(path)
             
-            # Extract the string URL if response is dict or object
             if isinstance(res, dict):
                 return res.get("publicUrl") or res.get("public_url")
             return str(res)
-        except Exception:
+        except Exception as e:
+            st.error(f"Storage upload error: {e}")
             return None
 
 
