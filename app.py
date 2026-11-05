@@ -507,7 +507,8 @@ class PostCardView:
 
     def html(self):
         item = self._post.item
-        desc = "" if self._claimed else f'<p class="fi-desc">{Html.esc(item.description).replace(chr(10), "<br>")}</p>'
+        # Show description for both active and claimed items
+        desc = f'<p class="fi-desc">{Html.esc(item.description).replace(chr(10), "<br>")}</p>' if item.description else ""
         return (
             f'{self._media()}<div class="fi-body"><div class="fi-title">{Html.esc(item.name)}</div>'
             f'<div class="fi-chips">{self._chips()}</div>{desc}<div class="fi-meta">{self._footer()}</div></div>'
@@ -516,7 +517,6 @@ class PostCardView:
     def render(self, key=None):
         with st.container(key=key or f"card_{self._post.post_id}"):
             st.markdown(self.html(), unsafe_allow_html=True)
-
 
 class PostGrid:
     def __init__(self, posts, claimed=False, retention_days=7):
