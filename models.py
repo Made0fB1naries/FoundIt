@@ -1,69 +1,76 @@
 # models.py
 from __future__ import annotations
 
-import datetime
-from dataclasses import dataclass
-from typing import Any, List, Optional
-from supabase import create_client
-import streamlit as st
-from backend import FoundItBackend, BackendError, BackendValidationError
+import logging
+import mimetypes
+import re
+import time
+import uuid
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field, replace
+from datetime import date, datetime, timedelta, timezone
+from typing import Callable, ClassVar, Iterable, Optional
 
-# ---------------------------------------------------------------- Backend Gateway Factory
+from backend import BackendError, BackendValidationError, FoundItBackend
+from functional import all_of, compose, filter_values, map_values, reduce_values
 
-def get_backend() -> FoundItBackend:
-    """Initializes the backend facade using Streamlit secrets."""
+logger = logging.getLogger(__name__)
+
+
+class ValidationError(ValueError):
+    pass
+
+
+# ---------------------------------------------------------------- time helpers
+
+def utc_now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def parse_timestamp(value) -> Optional[datetime]:
+    """Parse a Supabase date or timestamptz string into an aware UTC datetime."""
+    if not value:
+        return None
+    text = str(value).strip().replace("Z", "+00:00")
+    # Postgres trims trailing zeros, so the fraction can have 1-6 digits; Python < 3.11 wants 3 or 6.
+    text = re.sub(r"\.(\d+)", lambda m: "." + m.group(1)[:6].ljust(6, "0"), text, count=1)
     try:
-        return FoundItBackend.create(st.secrets)
-    except Exception as exc:
-        raise RuntimeError("Failed to initialize FoundIt backend from secrets.") from exc
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
 
-# ---------------------------------------------------------------- Domain Entities & Enums
+# ---------------------------------------------------------------- value objects (immutable)
 
 class Status:
     PENDING = "Pending Claim"
     CLAIMED = "Claimed"
+    ALL = (PENDING, CLAIMED)
 
     @classmethod
-    def parse(cls, value: str) -> str:
-        v = (value or "").strip()
-        if v in (cls.PENDING, cls.CLAIMED):
-            return v
-        return cls.PENDING
-
-
-@dataclass(frozen=True)
-class Category:
-    name: str
-
-
-class CategoryCatalog:
-    def __init__(self, categories: List[str]):
-        self._categories = [Category(c) for c in categories]
+    def parse(cls, value) -> str:
+        """Lenient: an unknown status coming from the database is read as Pending Claim."""
+        text = (value or "").strip()
+        return text if text in cls.ALL else cls.PENDING
 
     @classmethod
-    def default(cls) -> "CategoryCatalog":
-        return cls.default_instance()
-
-    @classmethod
-    def default_instance(cls) -> "CategoryCatalog":
-        return cls(["Electronics", "IDs & Cards", "Clothing", "Books & Notes", "Accessories", "Others"])
-
-    def names(self) -> List[str]:
-        return [c.name for c in self._categories]
-
-    def find(self, name: str) -> Optional[Category]:
-        for c in self._categories:
-            if c.name.lower() == (name or "").strip().lower():
-                return c
-        return None
+    def validate(cls, value) -> str:
+        """Strict: used for status changes requested by an administrator."""
+        text = (value or "").strip()
+        if text not in cls.ALL:
+            raise ValueError(f"Invalid status: {value!r}")
+        return text
 
 
 @dataclass(frozen=True)
 class Institution:
     name: str
     city: str
-    campuses: List[str]
+    campuses: tuple = ()
+
+    def __post_init__(self):
+        object.__setattr__(self, "campuses", tuple(self.campuses))
 
     @property
     def default_campus(self) -> str:
@@ -74,62 +81,69 @@ class Institution:
 
 
 @dataclass(frozen=True)
-class User:
-    email: str
-    username: str
-    institutional_id: str
-    role: str
-
-    @property
-    def avatar_initial(self) -> str:
-        return self.username[0].upper() if self.username else "U"
-
-    @property
-    def role_label(self) -> str:
-        return "Administrator" if self.can_manage_items() else "Student"
-
-    def can_manage_items(self) -> bool:
-        return self.role.lower() == "admin"
-
-    def sections(self) -> list[str]:
-        """Returns the available navigation sections based on user role."""
-        if self.can_manage_items():
-            return ["Feed", "Claimed", "Report", "Update status"]
-        return ["Feed", "Claimed"]
+class Category:
+    name: str
 
 
-class UserFactory:
-    @staticmethod
-    def create(email: str) -> User:
-        clean_email = (email or "").strip().lower()
-        admin_emails = [
-            e.strip().lower()
-            for e in st.secrets.get("ADMIN_EMAILS", "").split(",")
-            if e.strip()
-        ]
-        is_admin = clean_email in admin_emails or (clean_email.endswith("@mcm.edu.ph") and "admin" in clean_email)
-        
-        username = clean_email.split("@")[0] if "@" in clean_email else "user"
-        institutional_id = username
-        role = "admin" if is_admin else "student"
-        return User(email=clean_email, username=username, institutional_id=institutional_id, role=role)
+class CategoryCatalog:
+    FALLBACK = "Others"
+    # Names used by older posts, mapped onto the current categories.
+    ALIASES = {"ids/cards": "IDs & Cards", "tumblers/bottles": "Accessories"}
+
+    def __init__(self, categories: Iterable[str]):
+        self._categories = tuple(Category(name) for name in categories)
+
+    @classmethod
+    def default(cls) -> "CategoryCatalog":
+        return cls(["Electronics", "IDs & Cards", "Clothing", "Books & Notes", "Accessories", cls.FALLBACK])
+
+    def names(self) -> list:
+        return [c.name for c in self._categories]
+
+    def find(self, name) -> Optional[Category]:
+        """Strict lookup (case-insensitive, old names accepted); None when unknown."""
+        key = (name or "").strip().lower()
+        key = self.ALIASES.get(key, key).lower()
+        return next((c for c in self._categories if c.name.lower() == key), None)
+
+    def resolve(self, name) -> Category:
+        """Lenient lookup used when reading rows: unknown names become 'Others'."""
+        return self.find(name) or Category(self.FALLBACK)
 
 
 @dataclass(frozen=True)
 class Tracking:
-    status: str
+    status: str = Status.PENDING
     date_claimed: Optional[str] = None
 
-    def days_left(self, retention_days: int) -> Optional[int]:
-        if self.status != Status.CLAIMED or not self.date_claimed:
+    def __post_init__(self):
+        object.__setattr__(self, "status", Status.parse(self.status))
+
+    @property
+    def is_claimed(self) -> bool:
+        return self.status == Status.CLAIMED
+
+    def with_status(self, new_status) -> "Tracking":
+        """Return a NEW Tracking; the claim timestamp is created once and kept."""
+        status = Status.validate(new_status)  # raises ValueError if invalid
+        claimed_at = (self.date_claimed or utc_now_iso()) if status == Status.CLAIMED else None
+        return Tracking(status, claimed_at)
+
+    def _claimed_at(self) -> Optional[datetime]:
+        return parse_timestamp(self.date_claimed) if self.is_claimed else None
+
+    def days_left(self, retention_days: int, now: Optional[datetime] = None) -> Optional[int]:
+        claimed_at = self._claimed_at()
+        if claimed_at is None:
             return None
-        try:
-            claimed_date = datetime.date.fromisoformat(self.date_claimed)
-            expiry_date = claimed_date + datetime.timedelta(days=retention_days)
-            delta = (expiry_date - datetime.date.today()).days
-            return max(0, delta)
-        except Exception:
-            return None
+        remaining = claimed_at + timedelta(days=retention_days) - (now or datetime.now(timezone.utc))
+        return max(remaining.days, 0)
+
+    def is_expired(self, retention_days: int, now: Optional[datetime] = None) -> bool:
+        claimed_at = self._claimed_at()
+        if claimed_at is None:
+            return False
+        return (now or datetime.now(timezone.utc)) - claimed_at >= timedelta(days=retention_days)
 
 
 @dataclass(frozen=True)
@@ -138,8 +152,98 @@ class Item:
     description: str
     category: Category
     campus_location: str
-    image_url: Optional[str]
-    tracking: Tracking
+    image_url: Optional[str] = None
+    tracking: Tracking = field(default_factory=Tracking)
+
+    def with_image(self, url: Optional[str]) -> "Item":
+        return replace(self, image_url=url)
+
+    def with_tracking(self, tracking: Tracking) -> "Item":
+        return replace(self, tracking=tracking)
+
+
+# ---------------------------------------------------------------- users (inheritance + polymorphism)
+
+@dataclass(frozen=True)
+class User(ABC):
+    email: str
+    username: str
+
+    BASE_SECTIONS: ClassVar[tuple] = ("Feed", "Claimed")
+
+    @property
+    def institutional_id(self) -> str:
+        return self.email
+
+    @property
+    def avatar_initial(self) -> str:
+        return (self.username or "U")[:1].upper()
+
+    @property
+    @abstractmethod
+    def role_label(self) -> str:
+        ...
+
+    @abstractmethod
+    def can_manage_items(self) -> bool:
+        ...
+
+    @abstractmethod
+    def sections(self) -> list:
+        ...
+
+
+class StandardUser(User):
+    @property
+    def role_label(self) -> str:
+        return "Student/Faculty"
+
+    def can_manage_items(self) -> bool:
+        return False
+
+    def sections(self) -> list:
+        return list(self.BASE_SECTIONS)
+
+
+class Administrator(User):
+    @property
+    def role_label(self) -> str:
+        return "Administrator"
+
+    def can_manage_items(self) -> bool:
+        return True
+
+    def sections(self) -> list:
+        return list(self.BASE_SECTIONS) + ["Report", "Update status"]
+
+
+class UserFactory:
+    """Builds the right User subclass. Only the configured admin list grants admin rights."""
+
+    def __init__(self, admin_emails: Iterable[str] = ()):
+        self._admins = frozenset(e.strip().lower() for e in admin_emails if e and e.strip())
+
+    @classmethod
+    def from_setting(cls, raw) -> "UserFactory":
+        """Accepts the ADMIN_EMAILS secret: a comma-separated string or a list."""
+        items = raw.split(",") if isinstance(raw, str) else (raw or ())
+        return cls(items)
+
+    def create(self, email, username: Optional[str] = None) -> User:
+        clean = (email or "").strip().lower()
+        name = username or clean.split("@")[0] or "user"
+        kind = Administrator if clean in self._admins else StandardUser
+        return kind(email=clean, username=name)
+
+
+# ---------------------------------------------------------------- posts
+
+def _poster_identity(record: dict):
+    """Old rows keep the email in institutional_id and a plain name in username; newer rows may be swapped."""
+    candidates = [str(record.get("institutional_id") or ""), str(record.get("username") or "")]
+    email = next((c for c in candidates if "@" in c), "")
+    plain = next((c for c in candidates if c and "@" not in c), None)
+    return email, plain
 
 
 @dataclass(frozen=True)
@@ -150,33 +254,40 @@ class Post:
     item: Item
 
     @classmethod
-    def from_record(cls, record: dict, catalog: CategoryCatalog) -> "Post":
-        cat = catalog.find(record.get("category_name", "")) or Category("Others")
-        user = UserFactory.create(record.get("username", "user@mapua.edu.ph"))
-        tracking = Tracking(
-            status=Status.parse(record.get("status", Status.PENDING)),
-            date_claimed=record.get("date_claimed")
-        )
+    def create(cls, user: User, item: Item) -> "Post":
+        # second-resolution time keeps IDs sortable; the random suffix prevents collisions
+        post_id = f"POST-{datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6]}"
+        return cls(post_id, date.today().isoformat(), user, item)
+
+    @classmethod
+    def from_record(cls, record: dict, catalog: CategoryCatalog, users: UserFactory, default_campus: str) -> "Post":
+        email, plain = _poster_identity(record)
         item = Item(
-            name=record.get("item_name", "Untitled"),
-            description=record.get("description", ""),
-            category=cat,
-            campus_location=record.get("campus_location", ""),
+            name=record.get("item_name") or "Untitled",
+            description=record.get("description") or "",
+            category=catalog.resolve(record.get("category_name")),
+            campus_location=record.get("campus_location") or default_campus,
             image_url=record.get("image_url"),
-            tracking=tracking
+            tracking=Tracking(record.get("status"), record.get("date_claimed")),
         )
-        return cls(
-            post_id=record.get("post_id", ""),
-            date_posted=record.get("date_posted", ""),
-            user=user,
-            item=item
-        )
+        return cls(record.get("post_id", ""), str(record.get("date_posted") or ""), users.create(email, plain), item)
+
+    @property
+    def tracking_id(self) -> str:
+        return f"TRK-{self.post_id}"
+
+    @property
+    def is_claimed(self) -> bool:
+        return self.item.tracking.is_claimed
+
+    def with_item(self, item: Item) -> "Post":
+        return replace(self, item=item)
 
     def to_record(self) -> dict:
         return {
             "post_id": self.post_id,
             "date_posted": self.date_posted,
-            "username": self.user.email,
+            "username": self.user.username,
             "institutional_id": self.user.institutional_id,
             "item_name": self.item.name,
             "description": self.item.description,
@@ -188,28 +299,37 @@ class Post:
         }
 
 
-# ---------------------------------------------------------------- Services & Storage
+# ---------------------------------------------------------------- functional helpers: predicates are first-class values
 
-class AuthService:
-    def __init__(self, backend: FoundItBackend):
-        self._backend = backend
+normalize_text = compose(str.lower, str.strip, lambda value: value or "")
 
-    def login(self, email: str, password: str) -> AuthResult:
-        try:
-            data = self._backend.auth.login(email, password)
-            user = UserFactory.create(data["email"])
-            return AuthResult(success=True, user=user, refresh_token=data.get("refresh_token"))
-        except (BackendError, BackendValidationError) as e:
-            return AuthResult(success=False, error=str(e))
 
-    def restore(self, refresh_token: str) -> AuthResult:
-        try:
-            data = self._backend.auth.restore_session(refresh_token)
-            user = UserFactory.create(data["email"])
-            return AuthResult(success=True, user=user, refresh_token=data.get("refresh_token"))
-        except (BackendError, BackendValidationError) as e:
-            return AuthResult(success=False, error=str(e))
+def has_status(status: str) -> Callable[[Post], bool]:
+    return lambda post: post.item.tracking.status == status
 
+
+def in_campus(campus: Optional[str]) -> Callable[[Post], bool]:
+    if not campus:
+        return lambda post: True
+    wanted = normalize_text(campus)
+    return lambda post: normalize_text(post.item.campus_location) == wanted
+
+
+def matches_query(query: Optional[str]) -> Callable[[Post], bool]:
+    q = normalize_text(query)
+    if not q:
+        return lambda post: True
+    return lambda post: any(
+        q in normalize_text(field_value)
+        for field_value in (post.item.name, post.item.category.name, post.item.description)
+    )
+
+
+def newest_first(posts: Iterable[Post]) -> tuple:
+    return tuple(sorted(posts, key=lambda post: post.post_id, reverse=True))
+
+
+# ---------------------------------------------------------------- authentication
 
 @dataclass(frozen=True)
 class AuthResult:
@@ -219,75 +339,116 @@ class AuthResult:
     error: Optional[str] = None
 
 
-class SupabaseImageStorage:
-    BUCKET = "item-images"
+class AuthService:
+    def __init__(self, backend: FoundItBackend, users: UserFactory):
+        self._backend = backend
+        self._users = users
+
+    def _to_result(self, data: dict) -> AuthResult:
+        return AuthResult(True, self._users.create(data["email"]), data.get("refresh_token"))
+
+    def login(self, email: str, password: str) -> AuthResult:
+        try:
+            return self._to_result(self._backend.auth.login(email, password))
+        except (BackendError, BackendValidationError) as exc:
+            return AuthResult(False, error=str(exc))
+
+    def restore(self, refresh_token: str) -> AuthResult:
+        try:
+            return self._to_result(self._backend.auth.restore_session(refresh_token))
+        except (BackendError, BackendValidationError) as exc:
+            return AuthResult(False, error=str(exc))
+
+
+# ---------------------------------------------------------------- persistence (abstract interfaces + Supabase implementations)
+
+@dataclass(frozen=True)
+class ImageUpload:
+    filename: str
+    content_type: str
+    data: bytes
+
+    @classmethod
+    def from_file(cls, file) -> "ImageUpload":
+        """Adapts an uploaded file object (name, type, getvalue())."""
+        return cls(file.name, getattr(file, "type", "") or "", file.getvalue())
+
+
+class ImageStorage(ABC):
+    @abstractmethod
+    def upload(self, post_id: str, image: ImageUpload) -> str:
+        ...
+
+    @abstractmethod
+    def delete(self, url: str) -> None:
+        ...
+
+
+class SupabaseImageStorage(ImageStorage):
+    MAX_BYTES = 5 * 1024 * 1024
+    EXTENSIONS = {"image/jpeg": "jpg", "image/jpg": "jpg", "image/png": "png"}
+    CANONICAL_TYPES = {"jpg": "image/jpeg", "png": "image/png"}
 
     def __init__(self, backend: FoundItBackend):
         self._backend = backend
 
-    def upload(self, file_bytes: bytes, filename: str) -> Optional[str]:
-        if not file_bytes:
-            return None
-        try:
-            path = f"{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
-            
-            # Initialize the Supabase client directly using Streamlit secrets
-            supabase_url = st.secrets["SUPABASE_URL"]
-            supabase_key = st.secrets.get("SUPABASE_SERVICE_KEY") or st.secrets["SUPABASE_KEY"]
-            client = create_client(supabase_url, supabase_key)
+    def upload(self, post_id: str, image: ImageUpload) -> str:
+        declared = (image.content_type or mimetypes.guess_type(image.filename)[0] or "").lower()
+        extension = self.EXTENSIONS.get(declared)
+        if extension is None:
+            raise ValidationError("Only JPG and PNG photos are supported.")
+        if not image.data:
+            raise ValidationError("The selected photo is empty.")
+        if len(image.data) > self.MAX_BYTES:
+            raise ValidationError("The photo is too large (maximum 5 MB).")
+        # the file is named after the post, so spaces or odd characters in the original name never matter
+        return self._backend.storage.upload(f"{post_id}.{extension}", image.data, self.CANONICAL_TYPES[extension])
 
-            # Upload file bytes to Supabase storage
-            client.storage.from_(self.BUCKET).upload(
-                path, file_bytes, file_options={"content-type": "image/jpeg"}
-            )
-            
-            # Get public URL
-            res = client.storage.from_(self.BUCKET).get_public_url(path)
-            
-            if isinstance(res, dict):
-                return res.get("publicUrl") or res.get("public_url")
-            return str(res)
-        except Exception as e:
-            st.error(f"Storage upload error: {e}")
-            return None
+    def delete(self, url: str) -> None:
+        self._backend.storage.delete(url)
 
 
-class SupabasePostRepository:
-    def __init__(self, backend: FoundItBackend, catalog: CategoryCatalog, storage: SupabaseImageStorage, default_campus: str):
+class PostRepository(ABC):
+    @abstractmethod
+    def list_posts(self) -> tuple:
+        ...
+
+    @abstractmethod
+    def add(self, post: Post) -> None:
+        ...
+
+    @abstractmethod
+    def update_status(self, post_id: str, tracking: Tracking) -> None:
+        ...
+
+    @abstractmethod
+    def delete(self, post_id: str) -> None:
+        ...
+
+
+class SupabasePostRepository(PostRepository):
+    def __init__(self, backend: FoundItBackend, catalog: CategoryCatalog, users: UserFactory, default_campus: str):
         self._backend = backend
         self._catalog = catalog
-        self._storage = storage
+        self._users = users
         self._default_campus = default_campus
 
-    def list_posts(self) -> List[Post]:
-        try:
-            records = self._backend.posts.list_posts()
-            return [Post.from_record(r, self._catalog) for r in records]
-        except Exception:
-            return []
+    def list_posts(self) -> tuple:
+        """Raises BackendError on failure, so the app can show the problem instead of an empty feed."""
+        records = self._backend.posts.list_posts()
+        return map_values(lambda row: Post.from_record(row, self._catalog, self._users, self._default_campus), records)
 
-    def save(self, post: Post):
-        try:
-            self._backend.posts.create_post(post.to_record())
-        except Exception as e:
-            raise ValidationError(f"Failed to save post: {e}")
+    def add(self, post: Post) -> None:
+        self._backend.posts.create_post(post.to_record())
 
-    def update_status(self, post_id: str, status: str, date_claimed: Optional[str]):
-        try:
-            self._backend.posts.update_status(post_id, status, date_claimed)
-        except Exception as e:
-            raise ValidationError(f"Failed to update post status: {e}")
+    def update_status(self, post_id: str, tracking: Tracking) -> None:
+        self._backend.posts.update_status(post_id, tracking.status, tracking.date_claimed)
 
-    def delete(self, post_id: str):
-        try:
-            self._backend.posts.delete_post(post_id)
-        except Exception as e:
-            raise ValidationError(f"Failed to delete post: {e}")
+    def delete(self, post_id: str) -> None:
+        self._backend.posts.delete_post(post_id)
 
 
-class ValidationError(Exception):
-    pass
-
+# ---------------------------------------------------------------- application service
 
 @dataclass(frozen=True)
 class FeedSummary:
@@ -297,109 +458,130 @@ class FeedSummary:
 
 class LostAndFoundService:
     RETENTION_DAYS = 7
+    STALE_AFTER = 30  # seconds before the feed reloads from the database
 
-    def __init__(self, repository: SupabasePostRepository, catalog: CategoryCatalog, institution: Institution, matcher=None):
-        self._repository = repository
-        self.catalog = catalog
-        self.institution = institution
-        self._matcher = matcher
-        self._posts: List[Post] = []
-        self.refresh()
-
-    def refresh(self):
-        self._posts = self._repository.list_posts()
-        self.purge_expired()
-
-    def refresh_if_stale(self):
+    def __init__(self, repository: PostRepository, storage: ImageStorage, catalog: CategoryCatalog,
+                 institution: Institution, matcher=None, clock: Callable[[], float] = time.monotonic):
+        self._repo = repository
+        self._storage = storage
+        self._catalog = catalog
+        self._institution = institution
+        self._matcher = matcher  # optional Prolog logic engine
+        self._clock = clock
+        self._posts: tuple = ()  # newest first
+        self._loaded_at = 0.0
         self.refresh()
 
     @property
-    def posts(self) -> List[Post]:
+    def catalog(self) -> CategoryCatalog:
+        return self._catalog
+
+    @property
+    def institution(self) -> Institution:
+        return self._institution
+
+    @property
+    def posts(self) -> tuple:
         return self._posts
 
-    def summary(self) -> FeedSummary:
-        active = sum(1 for p in self._posts if p.item.tracking.status == Status.PENDING)
-        claimed = sum(1 for p in self._posts if p.item.tracking.status == Status.CLAIMED)
-        return FeedSummary(active=active, claimed=claimed)
+    # --- loading ---
+    def refresh(self) -> None:
+        posts = newest_first(self._repo.list_posts())
+        removed = {post.post_id for post in self._purge_expired(posts)}
+        self._posts = filter_values(lambda post: post.post_id not in removed, posts)
+        self._loaded_at = self._clock()
 
-    def active(self, campus: Optional[str] = None, query: str = "") -> List[Post]:
-        filtered = [p for p in self._posts if p.item.tracking.status == Status.PENDING]
-        if campus:
-            filtered = [p for p in filtered if p.item.campus_location.lower() == campus.lower()]
-        if query.strip():
-            q = query.lower()
-            filtered = [
-                p for p in filtered
-                if q in p.item.name.lower() or q in p.item.description.lower() or q in p.item.category.name.lower()
-            ]
-        return filtered
+    def refresh_if_stale(self) -> None:
+        if self._clock() - self._loaded_at > self.STALE_AFTER:
+            self.refresh()
 
-    def claimed(self, campus: Optional[str] = None, query: str = "") -> List[Post]:
-        filtered = [p for p in self._posts if p.item.tracking.status == Status.CLAIMED]
-        if campus:
-            filtered = [p for p in filtered if p.item.campus_location.lower() == campus.lower()]
-        if query.strip():
-            q = query.lower()
-            filtered = [
-                p for p in filtered
-                if q in p.item.name.lower() or q in p.item.description.lower() or q in p.item.category.name.lower()
-            ]
-        return filtered
+    def _purge_expired(self, posts: Iterable[Post]) -> tuple:
+        """Delete expired claimed posts (and their photos); returns the ones actually removed."""
+        removed = []
+        for post in filter_values(lambda p: p.item.tracking.is_expired(self.RETENTION_DAYS), posts):
+            try:
+                self._repo.delete(post.post_id)
+            except BackendError as exc:
+                logger.warning("Could not purge %s: %s", post.post_id, exc)
+                continue
+            if post.item.image_url:
+                self._storage.delete(post.item.image_url)
+            removed.append(post)
+        return tuple(removed)
 
-    def possible_matches(self, query: str, campus: Optional[str] = None) -> List[Post]:
-        base = self.active(campus=campus, query="")
-        if not self._matcher or not query.strip():
-            return self.active(campus=campus, query=query)
-        try:
-            matched_ids = self._matcher.find_matches(base, query)
-            by_id = {p.post_id: p for p in base}
-            return [by_id[pid] for pid in matched_ids if pid in by_id]
-        except Exception:
-            return self.active(campus=campus, query=query)
-
-    def report(self, user: User, name: str, description: str, category_name: str, campus: str, photo_file: Any) -> Post:
-        if not name.strip():
-            raise ValidationError("Item name is required.")
-        cat = self.catalog.find(category_name)
-        if not cat:
-            raise ValidationError("Invalid category.")
-        
-        image_url = None
-        if photo_file is not None:
-            storage = SupabaseImageStorage(self._repository._backend)
-            image_url = storage.upload(photo_file.getvalue(), photo_file.name)
-
-        post_id = f"POST-{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
-        date_posted = datetime.date.today().isoformat()
-        
-        item = Item(
-            name=name.strip(),
-            description=description.strip(),
-            category=cat,
-            campus_location=campus,
-            image_url=image_url,
-            tracking=Tracking(status=Status.PENDING)
-        )
-        post = Post(post_id=post_id, date_posted=date_posted, user=user, item=item)
-        self._repository.save(post)
-        self.refresh()
+    # --- queries ---
+    def find(self, post_id: str) -> Post:
+        post = next((p for p in self._posts if p.post_id == post_id), None)
+        if post is None:
+            raise ValidationError("That item no longer exists. Please refresh the page.")
         return post
 
-    def set_status(self, user: User, post_id: str, new_status_value: str):
-        if not user.can_manage_items():
-            raise ValidationError("Unauthorized: only administrators can change item status.")
-        new_status = Status.parse(new_status_value)
-        date_claimed = datetime.date.today().isoformat() if new_status == Status.CLAIMED else None
-        self._repository.update_status(post_id, new_status, date_claimed)
-        self.refresh()
+    def _select(self, status: str, campus: Optional[str], query: str) -> tuple:
+        return filter_values(all_of(has_status(status), in_campus(campus), matches_query(query)), self._posts)
 
-    def purge_expired(self):
-        today = datetime.date.today()
-        for p in list(self._posts):
-            if p.item.tracking.status == Status.CLAIMED and p.item.tracking.date_claimed:
-                try:
-                    c_date = datetime.date.fromisoformat(p.item.tracking.date_claimed)
-                    if (today - c_date).days >= self.RETENTION_DAYS:
-                        self._repository.delete(p.post_id)
-                except Exception:
-                    pass
+    def active(self, campus: Optional[str] = None, query: str = "") -> tuple:
+        return self._select(Status.PENDING, campus, query)
+
+    def claimed(self, campus: Optional[str] = None, query: str = "") -> tuple:
+        return self._select(Status.CLAIMED, campus, query)
+
+    def summary(self) -> FeedSummary:
+        def count(total: FeedSummary, post: Post) -> FeedSummary:
+            return FeedSummary(total.active + int(not post.is_claimed), total.claimed + int(post.is_claimed))
+        return reduce_values(count, self._posts, FeedSummary(0, 0))
+
+    def possible_matches(self, query: str, campus: Optional[str] = None) -> tuple:
+        """Pending posts the Prolog rules consider related to the search; empty if Prolog is unavailable."""
+        if self._matcher is None or not (query or "").strip():
+            return ()
+        candidates = self._select(Status.PENDING, None, "")
+        try:
+            results = self._matcher.find_possible_matches(query, map_values(Post.to_record, candidates), campus=campus)
+        except Exception:  # keep the feed usable if the Prolog engine fails
+            logger.warning("Prolog matching failed", exc_info=True)
+            return ()
+        by_id = {post.post_id: post for post in candidates}
+        return tuple(by_id[r["post_id"]] for r in results if r["post_id"] in by_id)
+
+    # --- commands (administrators only) ---
+    @staticmethod
+    def _require_admin(user: User) -> None:
+        if not user.can_manage_items():
+            raise PermissionError("Only administrators can do this.")
+
+    def report(self, user: User, name: str, description: str, category_name: str, campus: str, image=None) -> Post:
+        self._require_admin(user)
+        name = (name or "").strip()
+        if not name:
+            raise ValidationError("Please provide an item name.")
+        category = self._catalog.find(category_name)
+        if category is None:
+            raise ValidationError("Please choose a valid category.")
+        if campus not in self._institution.campuses:
+            raise ValidationError("Please choose a valid campus.")
+
+        post = Post.create(user, Item(name, (description or "").strip(), category, campus))
+        uploaded_url = None
+        if image is not None:
+            uploaded_url = self._storage.upload(post.post_id, ImageUpload.from_file(image))  # fails loudly
+            post = post.with_item(post.item.with_image(uploaded_url))
+        try:
+            self._repo.add(post)
+        except Exception:
+            if uploaded_url:
+                self._storage.delete(uploaded_url)  # do not leave an orphaned photo behind
+            raise
+        self._posts = newest_first((post,) + self._posts)
+        return post
+
+    def set_status(self, user: User, post_id: str, new_status: str) -> Post:
+        self._require_admin(user)
+        post = self.find(post_id)
+        try:
+            tracking = post.item.tracking.with_status(new_status)
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from exc
+        self._repo.update_status(post_id, tracking)
+        updated = post.with_item(post.item.with_tracking(tracking))
+        self._posts = tuple(updated if p.post_id == post_id else p for p in self._posts)
+        return updated
