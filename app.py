@@ -696,7 +696,7 @@ class FeedPage(Page):
         st.markdown("#### Possible matches")
         st.caption(
             "is this what you were looking for? "
-            "search, with items from the selected campus first."
+            "try search the items from the selected campus first."
         )
         PostGrid(matches, retention_days=self._service.RETENTION_DAYS, key="match_grid").render()
 
