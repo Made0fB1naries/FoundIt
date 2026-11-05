@@ -745,7 +745,9 @@ class UpdateStatusPage(AdminPage):
 
     @staticmethod
     def _label(post):
-        return f"{post.item.name} ({post.item.tracking.status.value}) - {post.user.username}"
+        status = post.item.tracking.status
+        status_str = status.value if hasattr(status, "value") else str(status)
+        return f"{post.item.name} ({status_str}) - {post.user.username}"
 
     def _render(self, user):
         if self._state.status_msg:
