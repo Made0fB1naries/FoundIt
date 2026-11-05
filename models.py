@@ -231,10 +231,14 @@ class SupabaseImageStorage:
         try:
             path = f"{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
             
-            # Safely locate the gateway or client attribute on FoundItBackend
-            gateway = getattr(self._backend, "_gateway", None) or getattr(self._backend, "gateway", None) or getattr(self._backend, "client", None)
-            client = gateway.privileged() if hasattr(gateway, "privileged") else gateway
+            # Directly use the client or gateway exposed by FoundItBackend
+            client = getattr(self._backend, "client", None) or getattr(self._backend, "gateway", None)
+            if hasattr(client, "privileged"):
+                client = client.privileged()
             
+            if not client or not hasattr(client, "storage"):
+                raise RuntimeError("Supabase client or storage client is not initialized.")
+
             # Upload file bytes to Supabase storage
             client.storage.from_(self.BUCKET).upload(
                 path, file_bytes, file_options={"content-type": "image/jpeg"}
