@@ -218,7 +218,7 @@ footer { visibility: hidden; }
     .fi-login-brand { margin-bottom: 32px; }
 }
 
-/* Main application */
+/* Main application shell */
 .st-key-main_shell {
     width: 100%;
     max-width: 1180px;
@@ -239,7 +239,7 @@ footer { visibility: hidden; }
     font-weight: 700; font-size: 1.4rem;
     display: flex; align-items: center; justify-content: center;
 }
-.fi-name { font-size: 1.4rem; font-weight: 700; line-height: 1.1; }
+.fi-name { font-size: 1.4rem; font-weight: 700; line-height: 1.1; color: #202124; }
 .fi-sub { color: #777D87; font-size: 0.8rem; }
 .fi-user { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
 .fi-avatar {
@@ -247,19 +247,10 @@ footer { visibility: hidden; }
     background: #FCE8EC; color: var(--mapua-red);
     display: flex; align-items: center; justify-content: center; font-weight: 600;
 }
-.fi-uname { font-weight: 600; font-size: 0.9rem; line-height: 1.1; }
+.fi-uname { font-weight: 600; font-size: 0.9rem; line-height: 1.1; color: #202124; }
 .fi-role { color: #80868B; font-size: 0.75rem; }
-.fi-welcome { text-align: center; margin: 2rem 0 1rem; }
-.fi-welcome .fi-logo { margin: 0 auto 16px; width: 56px; height: 56px; font-size: 1.8rem; }
-.fi-welcome h2 { margin: 0; font-weight: 700; }
-.fi-welcome p { color: #80868B; margin: 4px 0 0; }
-[data-testid="stBaseButton-pills"], [data-testid="stBaseButton-pillsActive"] {
-    border-radius: 8px !important; padding: 6px 18px !important;
-}
-[data-testid="stBaseButton-pillsActive"] {
-    background: #FCE8EC !important; border-color: #F2B8C4 !important;
-}
-[data-testid="stBaseButton-pillsActive"] p { color: var(--mapua-red) !important; font-weight: 600; }
+
+/* Grid Cards */
 .st-key-grid_col_0, .st-key-grid_col_1 { gap: 1rem !important; }
 [class*="st-key-card_"] {
     background: #FFFFFF; border: 1px solid #E7E8EB;
@@ -272,411 +263,117 @@ footer { visibility: hidden; }
 }
 .fi-noimg { background: #F1F2F4; color: #777D87; display: flex; align-items: center; justify-content: center; }
 .fi-body { padding: 8px 6px 4px; }
-.fi-title { font-size: 1.15rem; font-weight: 600; margin: 0 0 8px; }
+.fi-title { font-size: 1.15rem; font-weight: 600; margin: 0 0 8px; color: #202124; }
 .fi-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .fi-chip { padding: 3px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; background: #FCE8EC; color: #9F1028; }
 .fi-pending { background: #FFF4D6; color: #805B00; }
 .fi-claimed { background: #E8F5EC; color: #21683A; }
 .fi-desc { color: #555B65; margin: 0 0 8px; font-size: 0.9rem; }
 .fi-meta { color: #80868B; font-size: 0.75rem; }
-.fi-empty { text-align: center; color: #80868B; padding: 48px 16px; border: 1px dashed #D5D8DE; border-radius: 16px; }
-.stButton > button, .stFormSubmitButton > button {
-    width: 100%; background: var(--mapua-red); border: 1px solid var(--mapua-red);
-    border-radius: 8px; padding: 0.5rem 1.5rem;
-}
-.stButton > button:hover, .stFormSubmitButton > button:hover { background: var(--mapua-red-dark); }
-.stButton > button p, .stFormSubmitButton > button p { color: #FFFFFF; font-weight: 600; }
-.st-key-logout button { background: transparent !important; border: 1px solid #D5D8DE !important; }
-.st-key-logout button p { color: #444B55 !important; }
-[data-testid="stForm"] { background: #FFFFFF; border: 1px solid #E7E8EB; border-radius: 16px; padding: 20px; }
-[data-baseweb="input"], [data-baseweb="base-input"], [data-baseweb="textarea"], [data-baseweb="select"] > div { border-radius: 8px !important; }
-.st-key-feed_search [data-baseweb="input"], .st-key-feed_search [data-baseweb="base-input"], .st-key-feed_search input,
-.st-key-claimed_search [data-baseweb="input"], .st-key-claimed_search [data-baseweb="base-input"], .st-key-claimed_search input { border-radius: 999px !important; }
-.st-key-feed_search input, .st-key-claimed_search input { padding-left: 18px !important; }
-.st-key-feed_campus [data-baseweb="select"] > div, .st-key-claimed_campus [data-baseweb="select"] > div { border-radius: 999px !important; }
-[data-testid="stImage"] img { border-radius: 12px; }
+.fi-empty { text-align: center; color: #80868B; padding: 48px 16px; border: 1px dashed #D5D8DE; border-radius: 16px; background: #FFFFFF; }
 
-/* MCM light palette: improve contrast throughout the signed-in app */
-:root {
-    --fi-text: #24232B;
-    --fi-secondary: #55515D;
-    --fi-muted: #706B78;
-    --fi-red: #B5122B;
-    --fi-red-hover: #940E23;
-    --fi-border: #DEDDE3;
-    --fi-input: #F4F3F6;
-    --fi-soft-red: #FBE9ED;
-}
-
-/* Streamlit text, headings, captions and widget labels */
-.st-key-main_shell,
-.st-key-main_shell [data-testid="stMarkdown"],
-.st-key-main_shell [data-testid="stMarkdown"] p,
-.st-key-main_shell [data-testid="stMarkdown"] li,
-.st-key-main_shell [data-testid="stMarkdown"] span,
-.st-key-main_shell [data-testid="stCaptionContainer"],
-.st-key-main_shell [data-testid="stCaptionContainer"] p,
-.st-key-main_shell label,
-.st-key-main_shell legend,
-.st-key-main_shell [data-testid="stWidgetLabel"] p {
-    color: var(--fi-text) !important;
-}
-.st-key-main_shell h1,
-.st-key-main_shell h2,
-.st-key-main_shell h3,
-.st-key-main_shell h4 {
-    color: #211F27 !important;
-    font-weight: 700;
-}
-.st-key-main_shell [data-testid="stCaptionContainer"] p,
-.st-key-main_shell .fi-sub,
-.st-key-main_shell .fi-role,
-.st-key-main_shell .fi-meta {
-    color: var(--fi-muted) !important;
-}
-.st-key-main_shell .fi-title {
-    color: #211F27 !important;
-}
-.st-key-main_shell .fi-desc {
-    color: #514D58 !important;
-}
-.st-key-main_shell .fi-empty {
-    color: #625D69 !important;
-    background: #FFFFFF;
-}
-
-/* Inputs, text areas and dropdowns */
+/* Global control theme for signed-in app */
 .st-key-main_shell [data-baseweb="input"],
 .st-key-main_shell [data-baseweb="base-input"],
 .st-key-main_shell [data-baseweb="textarea"],
 .st-key-main_shell [data-baseweb="select"] > div {
-    background: var(--fi-input) !important;
-    border: 1px solid var(--fi-border) !important;
-    color: var(--fi-text) !important;
-    box-shadow: none !important;
-}
-.st-key-main_shell input,
-.st-key-main_shell textarea {
-    color: var(--fi-text) !important;
-    background: transparent !important;
-    -webkit-text-fill-color: var(--fi-text) !important;
-}
-.st-key-main_shell input::placeholder,
-.st-key-main_shell textarea::placeholder {
-    color: #817B88 !important;
-    -webkit-text-fill-color: #817B88 !important;
-    opacity: 1 !important;
-}
-.st-key-main_shell [data-baseweb="select"] *,
-.st-key-main_shell [data-baseweb="popover"] *,
-[data-baseweb="menu"] * {
-    color: var(--fi-text) !important;
-}
-.st-key-main_shell [data-baseweb="select"] svg {
-    fill: #625D69 !important;
-}
-
-/* Consistent MCM-red primary buttons and readable neutral buttons */
-.st-key-main_shell .stButton > button,
-.st-key-main_shell .stFormSubmitButton > button,
-.st-key-main_shell [data-testid^="stBaseButton-"] {
-    background: var(--fi-red) !important;
-    color: #FFFFFF !important;
-    border: 1px solid var(--fi-red) !important;
+    background: #202124 !important;
+    border: 1px solid #3C4043 !important;
     border-radius: 8px !important;
     box-shadow: none !important;
 }
-.st-key-main_shell .stButton > button:hover,
-.st-key-main_shell .stFormSubmitButton > button:hover,
-.st-key-main_shell [data-testid^="stBaseButton-"]:hover {
-    background: var(--fi-red-hover) !important;
-    border-color: var(--fi-red-hover) !important;
-}
-.st-key-main_shell .stButton > button *,
-.st-key-main_shell .stFormSubmitButton > button *,
-.st-key-main_shell [data-testid^="stBaseButton-"] * {
-    color: #FFFFFF !important;
-    fill: #FFFFFF !important;
-}
 
-/* Logout remains a quiet outlined button */
-.st-key-main_shell .st-key-logout button {
-    background: #FFFFFF !important;
-    color: #514D58 !important;
-    border: 1px solid #D5D2DA !important;
-}
-.st-key-main_shell .st-key-logout button *,
-.st-key-main_shell .st-key-logout button svg {
-    color: #514D58 !important;
-    fill: #514D58 !important;
-}
-.st-key-main_shell .st-key-logout button:hover {
-    background: #FBE9ED !important;
-    border-color: #E7AAB6 !important;
-}
-
-/* Selected navigation pills use a soft red surface; inactive pills stay white */
-.st-key-main_shell [data-testid="stBaseButton-pillsActive"] {
-    background: #FBE9ED !important;
-    border: 1px solid #E7AAB6 !important;
-}
-.st-key-main_shell [data-testid="stBaseButton-pillsActive"] *,
-.st-key-main_shell [data-testid="stBaseButton-pillsActive"] p {
-    color: #9F1028 !important;
-}
-.st-key-main_shell [data-testid="stBaseButton-pills"] {
-    background: #FFFFFF !important;
-    border: 1px solid #DEDDE3 !important;
-}
-.st-key-main_shell [data-testid="stBaseButton-pills"] *,
-.st-key-main_shell [data-testid="stBaseButton-pills"] p {
-    color: #514D58 !important;
-}
-
-/* Radio buttons, checkboxes and switches */
-.st-key-main_shell [data-testid="stRadio"] label,
-.st-key-main_shell [data-testid="stCheckbox"] label,
-.st-key-main_shell [data-testid="stToggle"] label {
-    color: var(--fi-text) !important;
-}
-.st-key-main_shell [data-testid="stRadio"] [aria-checked="true"],
-.st-key-main_shell [data-testid="stCheckbox"] [aria-checked="true"] {
-    color: var(--fi-red) !important;
-}
-
-/* Soft grey controls across Feed, Claimed, and Report */
-.st-key-main_shell [data-baseweb="input"],
-.st-key-main_shell [data-baseweb="base-input"],
-.st-key-main_shell [data-baseweb="textarea"],
-.st-key-main_shell [data-baseweb="select"] > div,
-.st-key-main_shell [data-testid="stDateInput"] input,
-.st-key-main_shell [data-testid="stNumberInput"] input {
-    background: #F3F4F6 !important;
-    border: 1px solid #D8DADF !important;
-    border-radius: 8px !important;
-    box-shadow: none !important;
-}
 .st-key-main_shell [data-baseweb="input"] > div,
 .st-key-main_shell [data-baseweb="base-input"] > div,
-.st-key-main_shell [data-baseweb="textarea"] > div,
-.st-key-main_shell [data-baseweb="select"] > div {
-    background: #F3F4F6 !important;
+.st-key-main_shell [data-baseweb="textarea"] > div {
+    background: #202124 !important;
 }
+
+/* Force white text inside inputs, textareas, and selectbox value displays */
 .st-key-main_shell input,
 .st-key-main_shell textarea,
-.st-key-main_shell [data-baseweb="select"] *,
-.st-key-main_shell [data-testid="stNumberInput"] input {
-    color: #292730 !important;
-    -webkit-text-fill-color: #292730 !important;
+.st-key-main_shell [data-baseweb="select"] div,
+.st-key-main_shell [data-baseweb="select"] span {
+    color: #FFFFFF !important;
+    -webkit-text-fill-color: #FFFFFF !important;
 }
+
+/* Light grey placeholder text for search & inputs */
 .st-key-main_shell input::placeholder,
 .st-key-main_shell textarea::placeholder {
-    color: #77737D !important;
-    -webkit-text-fill-color: #77737D !important;
-    opacity: 1 !important;
-}
-.st-key-main_shell [data-baseweb="input"]:focus-within,
-.st-key-main_shell [data-baseweb="textarea"]:focus-within,
-.st-key-main_shell [data-baseweb="select"]:focus-within {
-    border-color: #B8B5BE !important;
-    box-shadow: 0 0 0 1px #B8B5BE !important;
-}
-
-/* Buttons use the same quiet grey surface as the login input fields */
-.st-key-main_shell .stButton > button,
-.st-key-main_shell .stFormSubmitButton > button,
-.st-key-main_shell [data-testid^="stBaseButton-"] {
-    background: #F3F4F6 !important;
-    color: #34313B !important;
-    border: 1px solid #D8DADF !important;
-    border-radius: 8px !important;
-    box-shadow: none !important;
-}
-.st-key-main_shell .stButton > button:hover,
-.st-key-main_shell .stFormSubmitButton > button:hover,
-.st-key-main_shell [data-testid^="stBaseButton-"]:hover {
-    background: #E7E8EB !important;
-    border-color: #C9CBD1 !important;
-}
-.st-key-main_shell .stButton > button *,
-.st-key-main_shell .stFormSubmitButton > button *,
-.st-key-main_shell [data-testid^="stBaseButton-"] * {
-    color: #34313B !important;
-    fill: #34313B !important;
-}
-
-/* Search and campus filters have a soft grey pill appearance */
-.st-key-main_shell .st-key-feed_search [data-baseweb="input"],
-.st-key-main_shell .st-key-claimed_search [data-baseweb="input"],
-.st-key-main_shell .st-key-feed_campus [data-baseweb="select"] > div,
-.st-key-main_shell .st-key-claimed_campus [data-baseweb="select"] > div {
-    background: #F3F4F6 !important;
-    border: 1px solid #D8DADF !important;
-}
-.st-key-main_shell .st-key-feed_search input,
-.st-key-main_shell .st-key-claimed_search input {
-    background: transparent !important;
-    color: #292730 !important;
-}
-
-/* Report tab uploader/drop area */
-.st-key-main_shell [data-testid="stFileUploader"] section,
-.st-key-main_shell [data-testid="stFileUploader"] [data-testid="stFileUploaderDropzone"] {
-    background: #F3F4F6 !important;
-    border: 1px dashed #C9CBD1 !important;
-    border-radius: 10px !important;
-}
-.st-key-main_shell [data-testid="stFileUploader"] *,
-.st-key-main_shell [data-testid="stFileUploader"] small {
-    color: #514D58 !important;
-}
-.st-key-main_shell [data-testid="stFileUploader"] button {
-    background: #E7E8EB !important;
-    color: #34313B !important;
-    border: 1px solid #D0D2D8 !important;
-}
-.st-key-main_shell [data-testid="stFileUploader"] button * {
-    color: #34313B !important;
-}
-
-/* Radio controls and labels in the report/status forms */
-.st-key-main_shell [data-testid="stRadio"] label,
-.st-key-main_shell [data-testid="stCheckbox"] label,
-.st-key-main_shell [data-testid="stWidgetLabel"] p {
-    color: #34313B !important;
-}
-.st-key-main_shell [data-testid="stRadio"] [data-baseweb="radio"] div:first-child {
-    border-color: #77737D !important;
-}
-
-/* Form surfaces and feedback blocks */
-.st-key-main_shell [data-testid="stForm"] {
-    background: #FFFFFF !important;
-    border: 1px solid #E5E2E8 !important;
-}
-.st-key-main_shell [data-testid="stAlert"] {
-    color: #302D35 !important;
-    border-radius: 10px;
-}
-.st-key-main_shell [data-testid="stAlert"] p {
-    color: inherit !important;
-}
-
-/* High-contrast grey controls requested for the signed-in pages.
-   Login fields are intentionally excluded. */
-:root {
-    --fi-control-grey: #666B75;
-    --fi-control-grey-hover: #555A64;
-    --fi-control-border: #555A64;
-    --fi-control-white: #FFFFFF;
-    --fi-control-placeholder: #F0F1F3;
-}
-
-/* Main navigation: Feed, Claimed, Report, Update status */
-.st-key-main_shell [data-testid="stBaseButton-pills"],
-.st-key-main_shell [data-testid="stBaseButton-pillsActive"] {
-    background: var(--fi-control-grey) !important;
-    border: 1px solid var(--fi-control-border) !important;
-    color: var(--fi-control-white) !important;
-    border-radius: 8px !important;
-}
-.st-key-main_shell [data-testid="stBaseButton-pills"] *,
-.st-key-main_shell [data-testid="stBaseButton-pillsActive"] *,
-.st-key-main_shell [data-testid="stBaseButton-pills"] p,
-.st-key-main_shell [data-testid="stBaseButton-pillsActive"] p {
-    color: var(--fi-control-white) !important;
-    fill: var(--fi-control-white) !important;
-    opacity: 1 !important;
-}
-.st-key-main_shell [data-testid="stBaseButton-pills"]:hover,
-.st-key-main_shell [data-testid="stBaseButton-pillsActive"]:hover {
-    background: var(--fi-control-grey-hover) !important;
-    border-color: var(--fi-control-grey-hover) !important;
-}
-
-/* Feed and Claimed search fields, plus all Report and Update Status fields */
-.st-key-main_shell .st-key-feed_search [data-baseweb="input"],
-.st-key-main_shell .st-key-claimed_search [data-baseweb="input"],
-.st-key-main_shell [data-testid="stTextInput"] [data-baseweb="input"],
-.st-key-main_shell [data-testid="stTextArea"] [data-baseweb="textarea"],
-.st-key-main_shell [data-testid="stSelectbox"] [data-baseweb="select"] > div {
-    background: var(--fi-control-grey) !important;
-    border: 1px solid var(--fi-control-border) !important;
-    border-radius: 8px !important;
-    box-shadow: none !important;
-}
-.st-key-main_shell .st-key-feed_search input,
-.st-key-main_shell .st-key-claimed_search input,
-.st-key-main_shell [data-testid="stTextInput"] input,
-.st-key-main_shell [data-testid="stTextArea"] textarea {
-    background: transparent !important;
-    color: #FFFFFF !important;
-    -webkit-text-fill-color: #FFFFFF !important;
-    caret-color: #FFFFFF !important;
-}
-.st-key-main_shell .st-key-feed_search input::placeholder,
-.st-key-main_shell .st-key-claimed_search input::placeholder,
-.st-key-main_shell [data-testid="stTextInput"] input::placeholder,
-.st-key-main_shell [data-testid="stTextArea"] textarea::placeholder {
-    color: var(--fi-control-placeholder) !important;
-    -webkit-text-fill-color: var(--fi-control-placeholder) !important;
+    color: #BDC1C6 !important;
+    -webkit-text-fill-color: #BDC1C6 !important;
     opacity: 1 !important;
 }
 
-/* Campus filters and the item/campus/category selectors */
-.st-key-main_shell [data-testid="stSelectbox"] [data-baseweb="select"] > div,
-.st-key-main_shell [data-testid="stSelectbox"] [data-baseweb="select"] > div *,
-.st-key-main_shell [data-testid="stSelectbox"] [data-baseweb="select"] svg {
-    color: #FFFFFF !important;
+/* Dropdown arrow icon */
+.st-key-main_shell [data-baseweb="select"] svg {
     fill: #FFFFFF !important;
 }
-.st-key-main_shell [data-testid="stSelectbox"] [data-baseweb="select"] [data-testid="stSelectboxVirtualDropdown"] {
-    color: #24232B !important;
-}
-/* The opened dropdown menu remains white with dark text for readability. */
-.st-key-main_shell [data-baseweb="popover"] [role="option"],
-.st-key-main_shell [data-baseweb="popover"] [role="option"] *,
-[data-baseweb="menu"] [role="option"],
-[data-baseweb="menu"] [role="option"] * {
-    background: #FFFFFF !important;
-    color: #24232B !important;
-}
 
-/* Update Status: Pending Claim and Claimed radio choices */
-.st-key-main_shell [data-testid="stRadio"] [role="radiogroup"] label {
-    background: var(--fi-control-grey) !important;
-    border: 1px solid var(--fi-control-border) !important;
-    border-radius: 8px !important;
-    padding: 8px 14px !important;
-    margin-right: 8px !important;
-}
-.st-key-main_shell [data-testid="stRadio"] [role="radiogroup"] label *,
-.st-key-main_shell [data-testid="stRadio"] [role="radiogroup"] label p,
-.st-key-main_shell [data-testid="stRadio"] [role="radiogroup"] label span {
-    color: #FFFFFF !important;
-    -webkit-text-fill-color: #FFFFFF !important;
-}
-.st-key-main_shell [data-testid="stRadio"] [role="radiogroup"] label:has(input:checked) {
-    background: var(--fi-control-grey-hover) !important;
-    border-color: #3F444D !important;
-}
-
-/* Keep field labels dark on the white page, not white on grey. */
+/* Field labels */
 .st-key-main_shell [data-testid="stWidgetLabel"] p,
 .st-key-main_shell [data-testid="stTextInput"] label,
 .st-key-main_shell [data-testid="stTextArea"] label,
 .st-key-main_shell [data-testid="stSelectbox"] label,
 .st-key-main_shell [data-testid="stRadio"] > label {
-    color: #292730 !important;
+    color: #202124 !important;
+    font-weight: 600;
 }
 
+/* Search bar pill styling */
+.st-key-main_shell .st-key-feed_search [data-baseweb="input"],
+.st-key-main_shell .st-key-claimed_search [data-baseweb="input"],
+.st-key-main_shell .st-key-feed_campus [data-baseweb="select"] > div,
+.st-key-main_shell .st-key-claimed_campus [data-baseweb="select"] > div {
+    border-radius: 999px !important;
+}
+
+/* Logout button */
+.st-key-main_shell .st-key-logout button {
+    background: #FFFFFF !important;
+    border: 1px solid #D5D8DE !important;
+    border-radius: 8px !important;
+}
+.st-key-main_shell .st-key-logout button p {
+    color: #444B55 !important;
+}
+
+/* Base Web Dropdown Menu overlay options */
+[data-baseweb="popover"] [role="option"],
+[data-baseweb="menu"] [role="option"] {
+    background: #202124 !important;
+    color: #FFFFFF !important;
+}
+[data-baseweb="popover"] [role="option"] *,
+[data-baseweb="menu"] [role="option"] * {
+    color: #FFFFFF !important;
+}
+[data-baseweb="popover"] [role="option"]:hover,
+[data-baseweb="menu"] [role="option"]:hover {
+    background: #3C4043 !important;
+}
+
+/* File uploader */
+.st-key-main_shell [data-testid="stFileUploader"] section {
+    background: #202124 !important;
+    border: 1px dashed #5F6368 !important;
+    border-radius: 12px !important;
+}
+.st-key-main_shell [data-testid="stFileUploader"] * {
+    color: #E8EAED !important;
+}
+.st-key-main_shell [data-testid="stFileUploader"] button {
+    background: #3C4043 !important;
+    border: 1px solid #5F6368 !important;
+}
+.st-key-main_shell [data-testid="stFileUploader"] button * {
+    color: #FFFFFF !important;
+}
 """
 
     @classmethod
     def apply(cls):
-        # Place your background image at assets/mapua_background.png.
-        # The image is embedded into the CSS at runtime, so it works when
-        # the app is deployed from GitHub/Streamlit Community Cloud.
         image_path = Path(__file__).parent / "assets" / "mapua_background.png"
         image_css = ""
         if image_path.is_file():
