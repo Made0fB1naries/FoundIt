@@ -492,7 +492,10 @@ class PostCardView:
     def _chips(self):
         item = self._post.item
         status = item.tracking.status
-        chips = "" if self._claimed else f'<span class="fi-chip {self.STATUS_CLASS[status]}">{Html.esc(status.value)}</span>'
+        status_str = status.value if hasattr(status, "value") else str(status)
+        css_class = self.STATUS_CLASS.get(status_str, "fi-pending")
+        
+        chips = "" if self._claimed else f'<span class="fi-chip {css_class}">{Html.esc(status_str)}</span>'
         chips += f'<span class="fi-chip">{Html.esc(item.campus_location)}</span><span class="fi-chip">{Html.esc(item.category.name)}</span>'
         return chips
 
