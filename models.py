@@ -220,7 +220,7 @@ class AuthResult:
 
 
 class SupabaseImageStorage:
-    BUCKET = "item-images" 
+    BUCKET = "item-images"
 
     def __init__(self, backend: FoundItBackend):
         self._backend = backend
@@ -230,7 +230,10 @@ class SupabaseImageStorage:
             return None
         try:
             path = f"{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
-            client = self._backend._gateway.privileged()
+            
+            # Safely locate the gateway or client attribute on FoundItBackend
+            gateway = getattr(self._backend, "_gateway", None) or getattr(self._backend, "gateway", None) or getattr(self._backend, "client", None)
+            client = gateway.privileged() if hasattr(gateway, "privileged") else gateway
             
             # Upload file bytes to Supabase storage
             client.storage.from_(self.BUCKET).upload(
