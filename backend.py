@@ -2,14 +2,21 @@
 This module keeps Supabase infrastructure behind a small service layer so the
 Streamlit UI, Functional module, and Prolog module do not need
 to make direct database calls.
+
+Every Supabase operation (authentication, the posts table, photo storage) goes
+through the three APIs exposed by FoundItBackend.
 """
+
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import dataclass
 from typing import Any, Mapping
 
 from supabase import Client, create_client
+
+logger = logging.getLogger(__name__)
 
 
 class BackendError(RuntimeError):
@@ -43,8 +50,8 @@ class BackendConfig:
 class SupabaseGateway:
     """Centralized creation of Supabase clients.
 
-    The anonymous client is used for normal/authenticated access. The service
-    client is optional and should only be used by trusted server-side code.
+    The anonymous client is used for reads and sign-in. The service client is
+    optional and is only used by trusted server-side code for writes.
     """
 
     def __init__(self, config: BackendConfig):
@@ -59,7 +66,7 @@ class SupabaseGateway:
     def public(self) -> Client:
         return self._public
 
-    def new_auth_client(self) -> Client:
+    def new_auth_client(self) -> Client:  # throwaway, one per login
         return create_client(self._config.url, self._config.anon_key)
 
     def privileged(self) -> Client:
@@ -91,7 +98,7 @@ class AuthAPI:
         except BackendError:
             raise
         except Exception as exc:
-            raise BackendError("Login failed.") from exc
+            raise BackendError(f"Login failed: {exc}") from exc
 
     def restore_session(self, refresh_token: str) -> dict[str, Any]:
         if not (refresh_token or "").strip():
@@ -107,14 +114,14 @@ class AuthAPI:
         except BackendError:
             raise
         except Exception as exc:
-            raise BackendError("Session restoration failed.") from exc
+            raise BackendError(f"Session restoration failed: {exc}") from exc
 
 
 class PostsAPI:
-    """Backend-facing API for FoundIt's existing posts table.
+    """Backend-facing API for FoundIt's posts table.
 
-    Record keys deliberately match the existing FoundIt schema so records can
-    still be consumed by models.Post.from_record() and Claire's logic engine.
+    Record keys deliberately match the FoundIt schema so records can be
+    consumed by models.Post.from_record() and the Prolog logic engine.
     """
 
     TABLE = "posts"
@@ -144,7 +151,7 @@ class PostsAPI:
             rows = self._gateway.public.table(self.TABLE).select("*").execute().data or []
             return tuple(dict(row) for row in rows)
         except Exception as exc:
-            raise BackendError("Could not load posts.") from exc
+            raise BackendError(f"Could not load posts: {exc}") from exc
 
     def create_post(self, record: Mapping[str, Any]) -> dict[str, Any]:
         clean = self._validate_post(record)
@@ -153,7 +160,7 @@ class PostsAPI:
             rows = result.data or []
             return dict(rows[0]) if rows else clean
         except Exception as exc:
-            raise BackendError("Could not create post.") from exc
+            raise BackendError(f"Could not create post: {exc}") from exc
 
     def update_status(self, post_id: str, status: str, date_claimed: str | None) -> None:
         post_id = (post_id or "").strip()
@@ -167,7 +174,7 @@ class PostsAPI:
                 "post_id", post_id
             ).execute()
         except Exception as exc:
-            raise BackendError("Could not update post status.") from exc
+            raise BackendError(f"Could not update post status: {exc}") from exc
 
     def delete_post(self, post_id: str) -> None:
         post_id = (post_id or "").strip()
@@ -178,16 +185,63 @@ class PostsAPI:
                 "post_id", post_id
             ).execute()
         except Exception as exc:
-            raise BackendError("Could not delete post.") from exc
+            raise BackendError(f"Could not delete post: {exc}") from exc
+
+
+class StorageAPI:
+    """Backend-facing API for the public `item-images` bucket."""
+
+    BUCKET = "item-images"
+    ALLOWED_TYPES = {"image/jpeg", "image/png"}
+
+    def __init__(self, gateway: SupabaseGateway):
+        self._gateway = gateway
+
+    def _bucket(self):
+        return self._gateway.privileged().storage.from_(self.BUCKET)
+
+    def upload(self, path: str, data: bytes, content_type: str) -> str:
+        """Store the file and return its public URL."""
+        if not (path or "").strip() or not data:
+            raise BackendValidationError("A file name and file contents are required.")
+        if content_type not in self.ALLOWED_TYPES:
+            raise BackendValidationError("Only JPEG and PNG images are allowed.")
+        try:
+            bucket = self._bucket()
+            bucket.upload(
+                path=path,
+                file=data,
+                file_options={"content-type": content_type, "upsert": "true"},
+            )
+            result = bucket.get_public_url(path)
+        except Exception as exc:
+            raise BackendError(f"Could not upload photo: {exc}") from exc
+        if isinstance(result, dict):
+            result = result.get("publicUrl") or result.get("public_url")
+        return str(result)
+
+    def delete(self, url: str) -> bool:
+        """Remove the file behind a public URL. Returns False instead of raising."""
+        name = (url or "").split("?")[0].rstrip("/").split("/")[-1]
+        if not name:
+            return False
+        try:
+            self._bucket().remove([name])
+            return True
+        except Exception as exc:
+            logger.warning("Could not delete image %s: %s", name, exc)
+            return False
 
 
 @dataclass(frozen=True)
 class FoundItBackend:
     """Facade exposed to the rest of FoundIt."""
+
     auth: AuthAPI
     posts: PostsAPI
+    storage: StorageAPI
 
     @classmethod
     def create(cls, secrets: Mapping[str, Any]) -> "FoundItBackend":
         gateway = SupabaseGateway(BackendConfig.from_mapping(secrets))
-        return cls(auth=AuthAPI(gateway), posts=PostsAPI(gateway))
+        return cls(auth=AuthAPI(gateway), posts=PostsAPI(gateway), storage=StorageAPI(gateway))
