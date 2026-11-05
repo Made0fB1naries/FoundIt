@@ -67,7 +67,7 @@ class Institution:
 
     @property
     def default_campus(self) -> str:
-        return self._campuses[0] if self._campuses else ""
+        return self.campuses[0] if self.campuses else ""
 
     def get_details(self) -> str:
         return f"{self.name} - {self.city}"
@@ -101,9 +101,8 @@ class UserFactory:
             for e in st.secrets.get("ADMIN_EMAILS", "").split(",")
             if e.strip()
         ]
-        is_admin = clean_email in admin_emails or clean_email.endswith("@mapua.edu.ph") and "admin" in clean_email
+        is_admin = clean_email in admin_emails or (clean_email.endswith("@mcm.edu.ph") and "admin" in clean_email)
         
-        # Fallback or standard extraction
         username = clean_email.split("@")[0] if "@" in clean_email else "user"
         institutional_id = username
         role = "admin" if is_admin else "student"
@@ -225,7 +224,6 @@ class SupabaseImageStorage:
             return None
         try:
             path = f"{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
-            # Uses privileged client or public client depending on bucket policies via backend gateway
             client = self._backend._gateway.privileged()
             client.storage.from_(self.BUCKET).upload(path, file_bytes, {"file-options": {"contentType": "image/jpeg"}})
             res = client.storage.from_(self.BUCKET).get_public_url(path)
