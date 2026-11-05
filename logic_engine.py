@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-import threading
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime
 from pathlib import Path
 from typing import Iterable, Optional
@@ -10,14 +10,28 @@ from pyswip import Prolog
 
 
 class FoundItLogicEngine:
+    """Python wrapper around the Prolog rules in matching_rules.pl.
+
+    SWI-Prolog keeps its facts globally and is tied to the thread that created it,
+    while Streamlit runs every user session on its own thread. To stay safe, one
+    dedicated worker thread loads the rules and runs every query, one at a time.
+    """
 
     def __init__(self, rules_file: Optional[str] = None):
-        self.prolog = Prolog()
-        self._lock = threading.Lock()  # Prolog facts are global, so one query at a time
         path = Path(rules_file) if rules_file else Path(__file__).with_name("matching_rules.pl")
         if not path.is_file():
             raise FileNotFoundError(f"Prolog rules file not found: {path}")
-        self.prolog.consult(str(path.resolve()))
+        self._worker = ThreadPoolExecutor(max_workers=1, thread_name_prefix="prolog")
+        self.prolog = self._worker.submit(self._load, path).result()
+
+    @staticmethod
+    def _load(path: Path) -> Prolog:
+        prolog = Prolog()
+        prolog.consult(str(path.resolve()))
+        return prolog
+
+    def close(self) -> None:
+        self._worker.shutdown(wait=False)
 
     @staticmethod
     def _atom(value: object) -> str:
@@ -43,13 +57,37 @@ class FoundItLogicEngine:
         ):
             list(prolog.query(f"retractall({predicate})"))
 
-    def _find_possible_matches(
+    # ---------------------------------------------------------------- public API (runs on the worker thread)
+
+    def find_possible_matches(
         self,
         search_text: str,
         posts: Iterable[dict],
         category: Optional[str] = None,
         campus: Optional[str] = None,
         limit: int = 10,
+    ) -> list[dict]:
+        return self._worker.submit(
+            self._find_possible_matches, search_text, tuple(posts), category, campus, limit
+        ).result()
+
+    def is_claim_expired(
+        self,
+        date_claimed: str,
+        retention_days: int = 7,
+        today: Optional[date] = None,
+    ) -> bool:
+        return self._worker.submit(self._is_claim_expired, date_claimed, retention_days, today).result()
+
+    # ---------------------------------------------------------------- implementation
+
+    def _find_possible_matches(
+        self,
+        search_text: str,
+        posts: Iterable[dict],
+        category: Optional[str],
+        campus: Optional[str],
+        limit: int,
     ) -> list[dict]:
         words = self._tokens(search_text)
         if not words:
@@ -88,7 +126,7 @@ class FoundItLogicEngine:
             for word in self._tokens(item_text):
                 self.prolog.assertz(f"item_word({pid}, {self._atom(word)})")
 
-        matches = {}
+        matches: dict[str, set[str]] = {}
         for result in self.prolog.query("possible_match(PostId, Word)"):
             post_id = str(result["PostId"])
             word = str(result["Word"])
@@ -113,12 +151,7 @@ class FoundItLogicEngine:
         )
         return ranked[:max(1, int(limit))]
 
-    def _is_claim_expired(
-        self,
-        date_claimed: str,
-        retention_days: int = 7,
-        today: Optional[date] = None,
-    ) -> bool:
+    def _is_claim_expired(self, date_claimed: str, retention_days: int, today: Optional[date]) -> bool:
         if not date_claimed:
             return False
 
@@ -138,12 +171,3 @@ class FoundItLogicEngine:
             f"{current_date.toordinal()}, {int(retention_days)})"
         )
         return bool(list(self.prolog.query(query)))
-
-    def find_possible_matches(self, search_text, posts, category=None, campus=None, limit=10):
-        """Thread-safe entry point: Streamlit runs each user session in its own thread."""
-        with self._lock:
-            return self._find_possible_matches(search_text, posts, category, campus, limit)
-
-    def is_claim_expired(self, date_claimed, retention_days=7, today=None):
-        with self._lock:
-            return self._is_claim_expired(date_claimed, retention_days, today)
