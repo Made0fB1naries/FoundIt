@@ -19,7 +19,7 @@ except ImportError:
     FoundItLogicEngine = None
 
 
-# ---------------------------------------------------------------- shared resources (created once, reused by every session)
+# ---------------------------------------------------------------- shared resources
 
 @st.cache_resource
 def get_backend() -> FoundItBackend:
@@ -32,38 +32,34 @@ def get_matcher():
         return None
     try:
         return FoundItLogicEngine()
-    except Exception as exc:  # SWI-Prolog missing or rules file not found
+    except Exception as exc:
         print(f"Logic engine unavailable: {exc}")
         return None
 
 
-# ---------------------------------------------------------------- UI redesign
+# ---------------------------------------------------------------- UI Theme Engine (Light & Dark Mode)
 
 class Theme:
-    CSS = """
+    LIGHT_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-    --mapua-red: #C8102E;
-    --mapua-red-dark: #A80D26;
+    --mapua-red: #B30000;
+    --mapua-red-dark: #8C0000;
     --ink: #202124;
-    --muted: #6B7280;
-    --line: #E5E7EB;
+    --muted: #5F6368;
+    --line: #E0E2E6;
     --surface: #FFFFFF;
-    --page: #F7F7F8;
+    --input-bg: #F1F3F5;
+    --page: #F8F9FA;
 }
 
-html, body {
-    margin: 0 !important;
-    padding: 0 !important;
+html, body, .stApp {
+    background-color: var(--page) !important;
+    color: var(--ink) !important;
+    font-family: 'Inter', sans-serif !important;
 }
-html, body, .stApp, button, input, textarea, label, p, h1, h2, h3 {
-    font-family: 'Inter', sans-serif;
-}
-.stApp {
-    background: var(--page);
-    color: var(--ink);
-}
+
 [data-testid="stHeader"] {
     height: 0 !important;
     min-height: 0 !important;
@@ -71,38 +67,26 @@ html, body, .stApp, button, input, textarea, label, p, h1, h2, h3 {
 }
 [data-testid="stToolbar"] { right: 1rem; }
 [data-testid="stAppViewContainer"] > .main,
-[data-testid="stAppViewContainer"] > .main > div,
 [data-testid="stAppViewBlockContainer"],
-[data-testid="stMainBlockContainer"],
 .block-container {
     max-width: 100% !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    margin-top: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 footer { visibility: hidden; }
 
-/* Login split layout & Hero Typography */
-.st-key-login_shell {
-    min-height: 100vh;
-    padding: 0 !important;
-}
+/* Login split layout */
+.st-key-login_shell { min-height: 100vh; padding: 0 !important; }
 .st-key-login_visual {
     min-height: 100vh;
     height: 100vh;
     box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
+    display: flex; flex-direction: column; justify-content: flex-end;
     padding: 7vh 5vw !important;
-    background: #F1F1F2;
+    background: #1A1C1E;
     border-right: 1px solid #E9E9EB;
 }
-.hero-text-container {
-    padding: 1rem 0;
-}
+.hero-text-container { padding: 1rem 0; }
 .hero-title {
     font-size: clamp(2.6rem, 3.8vw, 3.6rem) !important;
     font-weight: 800 !important;
@@ -113,302 +97,209 @@ footer { visibility: hidden; }
 }
 .hero-subtitle {
     font-size: 1.2rem !important;
-    color: #FFFFFF !important;
+    color: #E2E8F0 !important;
     line-height: 1.6 !important;
     max-width: 460px;
     text-shadow: 0 1px 10px rgba(0, 0, 0, 0.42);
 }
 
 .st-key-login_panel {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
     padding: 6vh clamp(28px, 6vw, 96px) !important;
     background: #FFFFFF;
 }
-.fi-login-brand {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    margin-bottom: 48px;
-}
+.fi-login-brand { display: flex; align-items: center; gap: 11px; margin-bottom: 48px; }
 .fi-login-mark {
-    width: 42px;
-    height: 42px;
-    display: grid;
-    place-items: center;
-    border-radius: 10px;
-    background: var(--mapua-red);
-    color: #FFFFFF;
-    font-size: 1.35rem;
-    font-weight: 700;
+    width: 42px; height: 42px; display: grid; place-items: center; border-radius: 10px;
+    background: var(--mapua-red); color: #FFFFFF; font-size: 1.35rem; font-weight: 700;
 }
-.fi-login-brand-name {
-    color: #202124;
-    font-size: 1.2rem;
-    font-weight: 700;
-    line-height: 1.1;
-}
-.fi-login-brand-sub {
-    color: #777D87;
-    font-size: 0.76rem;
-    margin-top: 4px;
-}
-.fi-login-heading {
-    margin-bottom: 28px;
-}
-.fi-login-heading h2 {
-    color: #202124;
-    font-size: clamp(1.7rem, 2.2vw, 2.15rem);
-    font-weight: 700;
-    letter-spacing: -0.035em;
-    margin: 0 0 8px;
-}
-.fi-login-heading p {
-    color: #6B7280;
-    font-size: 0.94rem;
-    margin: 0;
-}
-.st-key-login_panel [data-testid="stForm"] {
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    padding: 0;
-}
-.st-key-login_panel [data-testid="stTextInput"] label {
-    color: #343A40;
-    font-size: 0.86rem;
-    font-weight: 600;
-    margin-bottom: 7px;
-}
-.st-key-login_panel [data-baseweb="input"] {
-    min-height: 46px;
-    border: 1px solid #D9DDE3 !important;
-    border-radius: 8px;
-    background: #F3F4F6 !important;
-    box-shadow: none !important;
-}
-.st-key-login_panel [data-baseweb="input"] > div {
-    background: #F3F4F6 !important;
-}
-.st-key-login_panel [data-baseweb="input"]:focus-within {
-    border-color: var(--mapua-red);
-    box-shadow: 0 0 0 1px var(--mapua-red);
-}
-.st-key-login_panel input {
-    color: #202124 !important;
-    background: #F3F4F6 !important;
-    font-size: 0.93rem;
-}
-.st-key-login_panel input::placeholder {
-    color: #8A9099 !important;
-    opacity: 1;
-}
-.st-key-login_panel .stFormSubmitButton > button {
-    width: 100%;
-    min-height: 46px;
-    margin-top: 12px;
-    border: 1px solid var(--mapua-red);
-    border-radius: 8px;
-    background: var(--mapua-red);
-    transition: background 0.15s ease, border-color 0.15s ease;
-}
-.st-key-login_panel .stFormSubmitButton > button:hover {
-    background: var(--mapua-red-dark);
-    border-color: var(--mapua-red-dark);
-}
-.st-key-login_panel .stFormSubmitButton > button p {
-    color: #FFFFFF;
-    font-weight: 600;
-}
-.fi-login-footnote {
-    color: #8A9099;
-    font-size: 0.76rem;
-    margin-top: 26px;
-    line-height: 1.5;
-}
-@media (max-width: 800px) {
-    .st-key-login_visual {
-        min-height: 34vh;
-        height: auto;
-        padding: 38px 28px 24px !important;
-        border-right: 0;
-    }
-    .hero-title { font-size: 2.1rem !important; }
-    .hero-subtitle { font-size: 1.05rem !important; }
-    .st-key-login_panel {
-        min-height: 66vh;
-        padding: 38px 28px !important;
-    }
-    .fi-login-brand { margin-bottom: 32px; }
-}
+.fi-login-brand-name { color: #202124; font-size: 1.2rem; font-weight: 700; line-height: 1.1; }
+.fi-login-brand-sub { color: #777D87; font-size: 0.76rem; margin-top: 4px; }
+.fi-login-heading { margin-bottom: 28px; }
+.fi-login-heading h2 { color: #202124; font-size: clamp(1.7rem, 2.2vw, 2.15rem); font-weight: 700; margin: 0 0 8px; }
+.fi-login-heading p { color: #6B7280; font-size: 0.94rem; margin: 0; }
 
-/* Main application shell */
-.st-key-main_shell {
-    width: 100%;
-    max-width: 1180px;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    padding: 2rem 2.25rem 3rem !important;
-    box-sizing: border-box;
-}
-@media (max-width: 800px) {
-    .st-key-main_shell {
-        padding: 1.25rem 1rem 2rem !important;
-    }
-}
-.fi-brand { display: flex; align-items: center; gap: 12px; }
-.fi-logo {
-    width: 44px; height: 44px; border-radius: 12px;
-    background: var(--mapua-red); color: #FFFFFF;
-    font-weight: 700; font-size: 1.4rem;
-    display: flex; align-items: center; justify-content: center;
-}
-.fi-name { font-size: 1.4rem; font-weight: 700; line-height: 1.1; color: #202124; }
-.fi-sub { color: #777D87; font-size: 0.8rem; }
-.fi-user { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
-.fi-avatar {
-    width: 36px; height: 36px; border-radius: 50%;
-    background: #FCE8EC; color: var(--mapua-red);
-    display: flex; align-items: center; justify-content: center; font-weight: 600;
-}
-.fi-uname { font-weight: 600; font-size: 0.9rem; line-height: 1.1; color: #202124; }
-.fi-role { color: #80868B; font-size: 0.75rem; }
-
-/* Grid Cards */
-.st-key-grid_col_0, .st-key-grid_col_1,
-.st-key-match_grid_col_0, .st-key-match_grid_col_1 { gap: 1rem !important; }
-[class*="st-key-card_"] {
-    background: #FFFFFF; border: 1px solid #E7E8EB;
-    border-radius: 16px; padding: 12px; gap: 0.6rem;
-}
-[class*="st-key-card_"]:hover { border-color: #D8A0AA; }
-.fi-img {
-    width: 100%; aspect-ratio: 4 / 3; background-size: cover;
-    background-position: center; border-radius: 12px;
-}
-.fi-noimg { background: #F1F2F4; color: #777D87; display: flex; align-items: center; justify-content: center; }
-.fi-body { padding: 8px 6px 4px; }
-.fi-title { font-size: 1.15rem; font-weight: 600; margin: 0 0 8px; color: #202124; }
-.fi-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-.fi-chip { padding: 3px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; background: #FCE8EC; color: #9F1028; }
-.fi-pending { background: #FFF4D6; color: #805B00; }
-.fi-claimed { background: #E8F5EC; color: #21683A; }
-.fi-desc { color: #555B65; margin: 0 0 8px; font-size: 0.9rem; }
-.fi-meta { color: #80868B; font-size: 0.75rem; }
-.fi-empty { text-align: center; color: #80868B; padding: 48px 16px; border: 1px dashed #D5D8DE; border-radius: 16px; background: #FFFFFF; }
-
-/* Global control theme for signed-in app */
+/* Fixed Form Inputs (High Contrast Light Mode) */
+.st-key-login_panel [data-baseweb="input"],
 .st-key-main_shell [data-baseweb="input"],
 .st-key-main_shell [data-baseweb="base-input"],
 .st-key-main_shell [data-baseweb="textarea"],
 .st-key-main_shell [data-baseweb="select"] > div {
-    background: #202124 !important;
-    border: 1px solid #3C4043 !important;
+    background: var(--input-bg) !important;
+    border: 1px solid var(--line) !important;
     border-radius: 8px !important;
-    box-shadow: none !important;
 }
-.st-key-main_shell [data-baseweb="input"] > div,
-.st-key-main_shell [data-baseweb="base-input"] > div,
-.st-key-main_shell [data-baseweb="textarea"] > div {
-    background: #202124 !important;
-}
-
-/* Force white text inside inputs, textareas, and selectbox value displays */
 .st-key-main_shell input,
 .st-key-main_shell textarea,
+.st-key-main_shell [data-baseweb="select"] span,
 .st-key-main_shell [data-baseweb="select"] div,
-.st-key-main_shell [data-baseweb="select"] span {
-    color: #FFFFFF !important;
-    -webkit-text-fill-color: #FFFFFF !important;
+.st-key-login_panel input {
+    color: #202124 !important;
+    -webkit-text-fill-color: #202124 !important;
+    font-weight: 500 !important;
 }
-
-/* Light grey placeholder text for search & inputs */
 .st-key-main_shell input::placeholder,
-.st-key-main_shell textarea::placeholder {
-    color: #BDC1C6 !important;
-    -webkit-text-fill-color: #BDC1C6 !important;
+.st-key-main_shell textarea::placeholder,
+.st-key-login_panel input::placeholder {
+    color: #6C757D !important;
+    -webkit-text-fill-color: #6C757D !important;
     opacity: 1 !important;
 }
+.st-key-main_shell [data-baseweb="select"] svg { fill: #202124 !important; }
+.st-key-main_shell [data-testid="stWidgetLabel"] p { color: #202124 !important; font-weight: 600; }
 
-/* Dropdown arrow icon */
-.st-key-main_shell [data-baseweb="select"] svg {
-    fill: #FFFFFF !important;
+/* Main app layout */
+.st-key-main_shell {
+    width: 100%; max-width: 1180px; margin: 0 auto !important; padding: 2rem 2.25rem 3rem !important; box-sizing: border-box;
+}
+.fi-brand { display: flex; align-items: center; gap: 12px; }
+.fi-logo {
+    width: 44px; height: 44px; border-radius: 12px; background: var(--mapua-red); color: #FFFFFF;
+    font-weight: 700; font-size: 1.4rem; display: flex; align-items: center; justify-content: center;
+}
+.fi-name { font-size: 1.4rem; font-weight: 700; line-height: 1.1; color: #202124; }
+.fi-sub { color: #777D87; font-size: 0.8rem; }
+.fi-avatar {
+    width: 36px; height: 36px; border-radius: 50%; background: #FCE8EC; color: var(--mapua-red);
+    display: flex; align-items: center; justify-content: center; font-weight: 600;
+}
+.fi-uname { font-weight: 600; font-size: 0.9rem; color: #202124; }
+.fi-role { color: #80868B; font-size: 0.75rem; }
+
+/* Grid Cards */
+[class*="st-key-card_"] {
+    background: #FFFFFF; border: 1px solid var(--line); border-radius: 16px; padding: 14px; gap: 0.6rem;
+}
+.fi-img { width: 100%; aspect-ratio: 4 / 3; background-size: cover; background-position: center; border-radius: 12px; }
+.fi-noimg { background: #EAECEF; color: #6C757D; display: flex; align-items: center; justify-content: center; }
+.fi-title { font-size: 1.15rem; font-weight: 600; margin: 8px 0 6px; color: #202124; }
+.fi-chip { padding: 3px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; background: #FCE8EC; color: #9F1028; }
+.fi-pending { background: #FFF4D6; color: #805B00; }
+.fi-claimed { background: #E8F5EC; color: #21683A; }
+.fi-desc { color: #495057; margin: 0 0 8px; font-size: 0.9rem; }
+.fi-meta { color: #6C757D; font-size: 0.75rem; }
+.fi-empty { text-align: center; color: #6C757D; padding: 48px 16px; border: 1px dashed var(--line); border-radius: 16px; background: #FFFFFF; }
+
+/* File Uploader Fix */
+.st-key-main_shell [data-testid="stFileUploader"] section {
+    background: #F8F9FA !important; border: 1px dashed #CED4DA !important; border-radius: 12px !important;
+}
+.st-key-main_shell [data-testid="stFileUploader"] * { color: #202124 !important; }
+.st-key-main_shell [data-testid="stFileUploader"] button {
+    background: #FFFFFF !important; border: 1px solid #CED4DA !important; border-radius: 8px !important;
+}
+"""
+
+    DARK_CSS = """
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --mapua-red: #D32F2F;
+    --mapua-red-dark: #B71C1C;
+    --ink: #E2E8F0;
+    --muted: #94A3B8;
+    --line: #2D3748;
+    --surface: #1E293B;
+    --input-bg: #0F172A;
+    --page: #0B0F17;
 }
 
-/* Field labels */
-.st-key-main_shell [data-testid="stWidgetLabel"] p,
-.st-key-main_shell [data-testid="stTextInput"] label,
-.st-key-main_shell [data-testid="stTextArea"] label,
-.st-key-main_shell [data-testid="stSelectbox"] label,
-.st-key-main_shell [data-testid="stRadio"] > label {
-    color: #202124 !important;
-    font-weight: 600;
+html, body, .stApp {
+    background-color: var(--page) !important;
+    color: var(--ink) !important;
+    font-family: 'Inter', sans-serif !important;
 }
 
-/* Section headings and captions on the light page */
-.st-key-main_shell [data-testid="stMarkdown"] h4 {
-    color: #202124 !important;
-    font-weight: 700;
-}
-.st-key-main_shell [data-testid="stCaptionContainer"] p {
-    color: #555B65 !important;
-}
+[data-testid="stHeader"] { height: 0 !important; background: transparent !important; }
+footer { visibility: hidden; }
 
-/* Search bar pill styling */
-.st-key-main_shell .st-key-feed_search [data-baseweb="input"],
-.st-key-main_shell .st-key-claimed_search [data-baseweb="input"],
-.st-key-main_shell .st-key-feed_campus [data-baseweb="select"] > div,
-.st-key-main_shell .st-key-claimed_campus [data-baseweb="select"] > div {
-    border-radius: 999px !important;
+.st-key-login_shell { min-height: 100vh; padding: 0 !important; }
+.st-key-login_visual {
+    min-height: 100vh; height: 100vh; box-sizing: border-box;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 7vh 5vw !important; background: #0F172A; border-right: 1px solid #1E293B;
 }
+.hero-title {
+    font-size: clamp(2.6rem, 3.8vw, 3.6rem) !important; font-weight: 800 !important;
+    color: #F8FAFC !important; line-height: 1.15 !important; margin-bottom: 1rem !important;
+}
+.hero-subtitle { font-size: 1.2rem !important; color: #94A3B8 !important; line-height: 1.6 !important; max-width: 460px; }
 
-/* Logout button */
-.st-key-main_shell .st-key-logout button {
-    background: #FFFFFF !important;
-    border: 1px solid #D5D8DE !important;
+.st-key-login_panel {
+    min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+    padding: 6vh clamp(28px, 6vw, 96px) !important; background: #1E293B;
+}
+.fi-login-mark {
+    width: 42px; height: 42px; display: grid; place-items: center; border-radius: 10px;
+    background: var(--mapua-red); color: #FFFFFF; font-size: 1.35rem; font-weight: 700;
+}
+.fi-login-brand-name { color: #F8FAFC; font-size: 1.2rem; font-weight: 700; }
+.fi-login-brand-sub { color: #94A3B8; font-size: 0.76rem; }
+.fi-login-heading h2 { color: #F8FAFC; font-size: clamp(1.7rem, 2.2vw, 2.15rem); font-weight: 700; }
+.fi-login-heading p { color: #94A3B8; font-size: 0.94rem; }
+
+/* Dark Mode Form Inputs */
+.st-key-login_panel [data-baseweb="input"],
+.st-key-main_shell [data-baseweb="input"],
+.st-key-main_shell [data-baseweb="base-input"],
+.st-key-main_shell [data-baseweb="textarea"],
+.st-key-main_shell [data-baseweb="select"] > div {
+    background: var(--input-bg) !important;
+    border: 1px solid var(--line) !important;
     border-radius: 8px !important;
 }
-.st-key-main_shell .st-key-logout button p {
-    color: #444B55 !important;
+.st-key-main_shell input,
+.st-key-main_shell textarea,
+.st-key-main_shell [data-baseweb="select"] span,
+.st-key-main_shell [data-baseweb="select"] div,
+.st-key-login_panel input {
+    color: #F8FAFC !important;
+    -webkit-text-fill-color: #F8FAFC !important;
 }
+.st-key-main_shell input::placeholder,
+.st-key-main_shell textarea::placeholder,
+.st-key-login_panel input::placeholder {
+    color: #64748B !important;
+    -webkit-text-fill-color: #64748B !important;
+}
+.st-key-main_shell [data-baseweb="select"] svg { fill: #F8FAFC !important; }
+.st-key-main_shell [data-testid="stWidgetLabel"] p { color: #F8FAFC !important; font-weight: 600; }
 
-/* Base Web Dropdown Menu overlay options */
-[data-baseweb="popover"] [role="option"],
-[data-baseweb="menu"] [role="option"] {
-    background: #202124 !important;
-    color: #FFFFFF !important;
-}
-[data-baseweb="popover"] [role="option"] *,
-[data-baseweb="menu"] [role="option"] * {
-    color: #FFFFFF !important;
-}
-[data-baseweb="popover"] [role="option"]:hover,
-[data-baseweb="menu"] [role="option"]:hover {
-    background: #3C4043 !important;
-}
+/* Main Shell */
+.st-key-main_shell { width: 100%; max-width: 1180px; margin: 0 auto !important; padding: 2rem 2.25rem 3rem !important; }
+.fi-logo { width: 44px; height: 44px; border-radius: 12px; background: var(--mapua-red); color: #FFFFFF; font-weight: 700; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; }
+.fi-name { font-size: 1.4rem; font-weight: 700; color: #F8FAFC; }
+.fi-sub { color: #94A3B8; font-size: 0.8rem; }
+.fi-avatar { width: 36px; height: 36px; border-radius: 50%; background: #331017; color: #FF8A8A; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+.fi-uname { font-weight: 600; font-size: 0.9rem; color: #F8FAFC; }
+.fi-role { color: #94A3B8; font-size: 0.75rem; }
 
-/* File uploader */
+/* Dark Mode Cards */
+[class*="st-key-card_"] {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; gap: 0.6rem;
+}
+.fi-noimg { background: #0F172A; color: #64748B; display: flex; align-items: center; justify-content: center; }
+.fi-title { font-size: 1.15rem; font-weight: 600; margin: 8px 0 6px; color: #F8FAFC; }
+.fi-chip { padding: 3px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; background: #331017; color: #FF8A8A; }
+.fi-pending { background: #3A2E00; color: #FFD54F; }
+.fi-claimed { background: #0B3818; color: #81C784; }
+.fi-desc { color: #CBD5E1; margin: 0 0 8px; font-size: 0.9rem; }
+.fi-meta { color: #94A3B8; font-size: 0.75rem; }
+.fi-empty { text-align: center; color: #94A3B8; padding: 48px 16px; border: 1px dashed var(--line); border-radius: 16px; background: var(--surface); }
+
+/* File Uploader Dark */
 .st-key-main_shell [data-testid="stFileUploader"] section {
-    background: #202124 !important;
-    border: 1px dashed #5F6368 !important;
-    border-radius: 12px !important;
+    background: #0F172A !important; border: 1px dashed #334155 !important; border-radius: 12px !important;
 }
-.st-key-main_shell [data-testid="stFileUploader"] * {
-    color: #E8EAED !important;
-}
+.st-key-main_shell [data-testid="stFileUploader"] * { color: #F8FAFC !important; }
 .st-key-main_shell [data-testid="stFileUploader"] button {
-    background: #3C4043 !important;
-    border: 1px solid #5F6368 !important;
-}
-.st-key-main_shell [data-testid="stFileUploader"] button * {
-    color: #FFFFFF !important;
+    background: #1E293B !important; border: 1px solid #334155 !important; border-radius: 8px !important;
 }
 """
 
     @classmethod
-    def apply(cls):
+    def apply(cls, is_dark=False):
+        selected_css = cls.DARK_CSS if is_dark else cls.LIGHT_CSS
         image_path = Path(__file__).parent / "assets" / "mapua_background.png"
         image_css = ""
         if image_path.is_file():
@@ -418,12 +309,10 @@ footer { visibility: hidden; }
             image_css = f"""
 .st-key-login_visual {{
     background-image: url("data:{mime_type};base64,{image_data}");
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
+    background-size: cover; background-position: center center; background-repeat: no-repeat;
 }}
 """
-        st.markdown(f"<style>{cls.CSS}{image_css}</style>", unsafe_allow_html=True)
+        st.markdown(f"<style>{selected_css}{image_css}</style>", unsafe_allow_html=True)
 
 
 class Html:
@@ -441,8 +330,6 @@ class EmptyState:
 # ---------------------------------------------------------------- session + cookies
 
 class SessionField:
-    """Descriptor: an attribute stored in st.session_state."""
-
     def __init__(self, default=None):
         self._default = default
 
@@ -467,6 +354,7 @@ class AppState:
     report_n = SessionField(0)
     report_msg = SessionField()
     service = SessionField()
+    dark_mode = SessionField(False)
 
     def reset_navigation(self):
         st.session_state.pop("nav", None)
@@ -481,7 +369,7 @@ class CookieSession:
         self._auth = auth
         self._cookies = stx.CookieManager()
 
-    def restore(self):  # auto-login, survives page refresh
+    def restore(self):
         state = self._state
         if state.current_user or state.logged_out:
             return
@@ -493,7 +381,7 @@ class CookieSession:
                 state.pending_token = result.refresh_token
                 st.rerun()
 
-    def sync(self):  # write / clear the cookie safely
+    def sync(self):
         state = self._state
         if state.pending_token and state.current_user:
             self._cookies.set(
@@ -540,7 +428,6 @@ class PostCardView:
 
     def html(self):
         item = self._post.item
-        # Show description for both active and claimed items
         desc = f'<p class="fi-desc">{Html.esc(item.description).replace(chr(10), "<br>")}</p>' if item.description else ""
         return (
             f'{self._media()}<div class="fi-body"><div class="fi-title">{Html.esc(item.name)}</div>'
@@ -557,7 +444,7 @@ class PostGrid:
         self._posts = posts
         self._claimed = claimed
         self._retention_days = retention_days
-        self._key = key  # container keys must be unique when a page shows two grids
+        self._key = key
 
     def render(self):
         cols = st.columns(2, gap="small")
@@ -603,20 +490,12 @@ class LoginView:
                     )
 
                     with st.form("login_form"):
-                        email = st.text_input(
-                            "Institutional Email",
-                            placeholder="name@mcm.edu.ph",
-                        )
-                        password = st.text_input(
-                            "Password",
-                            type="password",
-                            placeholder="Enter your password",
-                        )
+                        email = st.text_input("Institutional Email", placeholder="name@mcm.edu.ph")
+                        password = st.text_input("Password", type="password", placeholder="Enter your password")
                         submitted = st.form_submit_button("Sign in")
 
                     st.markdown(
-                        '<div class="fi-login-footnote">'
-                        'For Mapúa MCM students and authorized personnel.</div>',
+                        '<div class="fi-login-footnote">For Mapúa MCM students and authorized personnel.</div>',
                         unsafe_allow_html=True,
                     )
 
@@ -632,12 +511,13 @@ class LoginView:
 
 
 class AppBar:
-    def __init__(self, institution, user):
+    def __init__(self, institution, user, state):
         self._institution = institution
         self._user = user
+        self._state = state
 
-    def render(self):  # returns True when Logout was clicked
-        c_brand, c_user, c_out = st.columns([5, 3, 1.5], vertical_alignment="center")
+    def render(self):
+        c_brand, c_user, c_mode, c_out = st.columns([4.5, 2.5, 1, 1.2], vertical_alignment="center")
         with c_brand:
             st.markdown(
                 f'<div class="fi-brand"><div class="fi-logo">F</div><div><div class="fi-name">FoundIt</div>'
@@ -651,6 +531,11 @@ class AppBar:
                 f'<div class="fi-role">{Html.esc(self._user.role_label)}</div></div></div>',
                 unsafe_allow_html=True,
             )
+        with c_mode:
+            is_dark = st.toggle("🌙", value=self._state.dark_mode, help="Toggle Dark Mode")
+            if is_dark != self._state.dark_mode:
+                self._state.dark_mode = is_dark
+                st.rerun()
         with c_out:
             return st.button("Logout", key="logout")
 
@@ -699,10 +584,7 @@ class FeedPage(Page):
         if not matches:
             return
         st.markdown("#### Possible matches")
-        st.caption(
-            "is this what you were looking for? "
-            "try searching the items from the selected campus first."
-        )
+        st.caption("is this what you were looking for? try searching the items from the selected campus first.")
         PostGrid(matches, retention_days=self._service.RETENTION_DAYS, key="match_grid").render()
 
     def render(self, user):
@@ -712,8 +594,7 @@ class FeedPage(Page):
         col_search, col_campus = st.columns([3, 1])
         with col_search:
             query = st.text_input(
-                "Search", "", key="feed_search", placeholder="Search by name, category or description",
-                label_visibility="collapsed",
+                "Search", "", key="feed_search", placeholder="Search by name, category or description", label_visibility="collapsed"
             )
         with col_campus:
             campus = self._campus_filter("feed_campus")
@@ -724,7 +605,6 @@ class FeedPage(Page):
         else:
             PostGrid(posts, retention_days=self._service.RETENTION_DAYS).render()
 
-        # Prolog suggestions are shown in addition to the normal search results
         self._render_possible_matches(query, campus, posts)
 
 
@@ -736,8 +616,7 @@ class ClaimedPage(Page):
         col_search, col_campus = st.columns([3, 1])
         with col_search:
             query = st.text_input(
-                "Search", "", key="claimed_search", placeholder="Search by name, category or description",
-                label_visibility="collapsed",
+                "Search", "", key="claimed_search", placeholder="Search by name, category or description", label_visibility="collapsed"
             )
         with col_campus:
             campus = self._campus_filter("claimed_campus")
@@ -801,7 +680,7 @@ class UpdateStatusPage(AdminPage):
             st.success(self._state.status_msg)
             self._state.status_msg = None
 
-        posts = self._service.posts  # already newest first
+        posts = self._service.posts
         if not posts:
             EmptyState.show("No items available to update.")
             return
@@ -809,9 +688,7 @@ class UpdateStatusPage(AdminPage):
         by_id = {p.post_id: p for p in posts}
         left, right = st.columns(2, gap="large")
         with left:
-            selected_id = st.selectbox(
-                "Select Item to Update", list(by_id.keys()), format_func=lambda pid: self._label(by_id[pid])
-            )
+            selected_id = st.selectbox("Select Item to Update", list(by_id.keys()), format_func=lambda pid: self._label(by_id[pid]))
             new_status = st.radio("Select New Status", list(Status.ALL), horizontal=True)
             apply_update = st.button("Apply Status Update")
         with right:
@@ -843,28 +720,23 @@ class FoundItApp:
         self._institution = Institution("Mapúa Malayan Colleges Mindanao", "Davao City", ["RSY Building", "RG Birrey"])
 
     def _service(self):
-        if self._state.service is None:  # built after login, so visitors never hit the database
+        if self._state.service is None:
             catalog = CategoryCatalog.default()
-            repository = SupabasePostRepository(
-                self._backend, catalog, self._users, self._institution.default_campus
-            )
-            self._state.service = LostAndFoundService(
-                repository, SupabaseImageStorage(self._backend), catalog, self._institution,
-                matcher=get_matcher(),
-            )
+            repository = SupabasePostRepository(self._backend, catalog, self._users, self._institution.default_campus)
+            self._state.service = LostAndFoundService(repository, SupabaseImageStorage(self._backend), catalog, self._institution, matcher=get_matcher())
         return self._state.service
 
     def _logout(self):
         self._state.current_user = None
         self._state.logged_out = True
         self._state.pending_delete = True
-        self._state.service = None  # drop cached posts
+        self._state.service = None
         self._state.reset_navigation()
         st.rerun()
 
     def _render_main(self, user):
         with st.container(key="main_shell"):
-            if AppBar(self._institution, user).render():
+            if AppBar(self._institution, user, self._state).render():
                 self._logout()
 
             try:
@@ -877,14 +749,12 @@ class FoundItApp:
             if not user.can_manage_items():
                 st.caption("Standard account: only administrators can report or update items.")
 
-            navigation = st.pills(
-                "Section", user.sections(), default="Feed", key="nav", label_visibility="collapsed"
-            ) or "Feed"
+            navigation = st.pills("Section", user.sections(), default="Feed", key="nav", label_visibility="collapsed") or "Feed"
             pages = {cls.title: cls(service, self._state) for cls in self.PAGES}
             pages.get(navigation, pages["Feed"]).render(user)
 
     def run(self):
-        Theme.apply()
+        Theme.apply(is_dark=self._state.dark_mode)
         self._cookies.restore()
         self._cookies.sync()
         user = self._state.current_user
