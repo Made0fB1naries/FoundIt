@@ -329,6 +329,19 @@ footer { visibility: hidden; }
 }
 .st-key-main_shell [data-testid="stFileUploader"] button {
     background: #1E293B !important; border: 1px solid #334155 !important; border-radius: 8px !important;
+    
+.st-key-main_shell [data-testid="stFileUploader"] button {
+    background: #1E293B !important; border: 1px solid #334155 !important; border-radius: 8px !important;
+}
+
+/* ---- Dark mode: input boxes (inner wrappers were still white) ---- */
+.st-key-main_shell [data-testid="stTextInputRootElement"],
+...
+(everything else from the dark mode snippet)
+...
+.st-key-main_shell h4 {
+    color: #CBD5E1 !important;
+}
 
 /* ---- Dark mode: input boxes (inner wrappers were still white) ---- */
 .st-key-main_shell [data-testid="stTextInputRootElement"],
