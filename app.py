@@ -119,7 +119,7 @@ footer { visibility: hidden; }
 .fi-login-heading h2 { color: #202124; font-size: clamp(1.7rem, 2.2vw, 2.15rem); font-weight: 700; margin: 0 0 8px; }
 .fi-login-heading p { color: #6B7280; font-size: 0.94rem; margin: 0; }
 
-/* Fixed Form Inputs (High Contrast Light Mode) */
+/* Fixed Form Inputs */
 .st-key-login_panel [data-baseweb="input"],
 .st-key-main_shell [data-baseweb="input"],
 .st-key-main_shell [data-baseweb="base-input"],
@@ -167,23 +167,27 @@ footer { visibility: hidden; }
 .fi-uname { font-weight: 600; font-size: 0.9rem; color: #202124; line-height: 1.1; }
 .fi-role { color: #80868B; font-size: 0.75rem; }
 
-/* Theme switch button styling (Light Mode: dark moon icon) */
+/* Theme switch button styling */
 .st-key-main_shell .st-key-theme_btn button {
     background: #FFFFFF !important;
     border: 1px solid #D5D8DE !important;
     border-radius: 8px !important;
-    min-height: 40px !important;
+    min-height: 38px !important;
+    width: 42px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
-.st-key-main_shell .st-key-theme_btn button p {
-    color: #202124 !important;
-    font-size: 1.1rem !important;
-}
+.st-key-main_shell .st-key-theme_btn button p { display: none !important; }
 
-/* Grid Cards */
+/* Grid Cards & Images (Preserves Image Visibility) */
 [class*="st-key-card_"] {
     background: #FFFFFF; border: 1px solid var(--line); border-radius: 16px; padding: 14px; gap: 0.6rem;
 }
-.fi-img { width: 100%; aspect-ratio: 4 / 3; background-size: cover; background-position: center; border-radius: 12px; }
+.fi-img { 
+    width: 100%; aspect-ratio: 4 / 3; background-size: cover; background-position: center; border-radius: 12px; 
+}
 .fi-noimg { background: #EAECEF; color: #6C757D; display: flex; align-items: center; justify-content: center; }
 .fi-title { font-size: 1.15rem; font-weight: 600; margin: 8px 0 6px; color: #202124; }
 .fi-chip { padding: 3px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; background: #FCE8EC; color: #9F1028; }
@@ -197,7 +201,6 @@ footer { visibility: hidden; }
 .st-key-main_shell [data-testid="stFileUploader"] section {
     background: #F8F9FA !important; border: 1px dashed #CED4DA !important; border-radius: 12px !important;
 }
-.st-key-main_shell [data-testid="stFileUploader"] * { color: #202124 !important; }
 .st-key-main_shell [data-testid="stFileUploader"] button {
     background: #FFFFFF !important; border: 1px solid #CED4DA !important; border-radius: 8px !important;
 }
@@ -289,21 +292,26 @@ footer { visibility: hidden; }
 .fi-uname { font-weight: 600; font-size: 0.9rem; color: #F8FAFC; line-height: 1.1; }
 .fi-role { color: #94A3B8; font-size: 0.75rem; }
 
-/* Theme switch button styling (Dark Mode: white sun icon) */
+/* Dark Mode Theme switch button styling */
 .st-key-main_shell .st-key-theme_btn button {
     background: #1E293B !important;
     border: 1px solid #334155 !important;
     border-radius: 8px !important;
-    min-height: 40px !important;
+    min-height: 38px !important;
+    width: 42px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
-.st-key-main_shell .st-key-theme_btn button p {
-    color: #FFFFFF !important;
-    font-size: 1.1rem !important;
-}
+.st-key-main_shell .st-key-theme_btn button p { display: none !important; }
 
-/* Dark Mode Cards */
+/* Dark Mode Cards & Images (Ensures Photo Display) */
 [class*="st-key-card_"] {
     background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; gap: 0.6rem;
+}
+.fi-img { 
+    width: 100%; aspect-ratio: 4 / 3; background-size: cover; background-position: center; border-radius: 12px; 
 }
 .fi-noimg { background: #0F172A; color: #64748B; display: flex; align-items: center; justify-content: center; }
 .fi-title { font-size: 1.15rem; font-weight: 600; margin: 8px 0 6px; color: #F8FAFC; }
@@ -318,7 +326,6 @@ footer { visibility: hidden; }
 .st-key-main_shell [data-testid="stFileUploader"] section {
     background: #0F172A !important; border: 1px dashed #334155 !important; border-radius: 12px !important;
 }
-.st-key-main_shell [data-testid="stFileUploader"] * { color: #F8FAFC !important; }
 .st-key-main_shell [data-testid="stFileUploader"] button {
     background: #1E293B !important; border: 1px solid #334155 !important; border-radius: 8px !important;
 }
@@ -538,34 +545,40 @@ class LoginView:
 
 
 class AppBar:
+    MOON_SVG = """<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>"""
+    SUN_SVG = """<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>"""
+
     def __init__(self, institution, user, state):
         self._institution = institution
         self._user = user
         self._state = state
 
     def render(self):
-        c_brand, c_mode, c_user, c_out = st.columns([4, 1, 2.5, 1.2], vertical_alignment="center")
+        c_brand, c_controls = st.columns([5, 5], vertical_alignment="center")
         with c_brand:
             st.markdown(
                 f'<div class="fi-brand"><div class="fi-logo">F</div><div><div class="fi-name">FoundIt</div>'
                 f'<div class="fi-sub">{Html.esc(self._institution.get_details())}</div></div></div>',
                 unsafe_allow_html=True,
             )
-        with c_mode:
-            with st.container(key="theme_btn"):
-                button_label = "☀️" if self._state.dark_mode else "🌙"
-                if st.button(button_label, help="Toggle Theme"):
-                    self._state.dark_mode = not self._state.dark_mode
-                    st.rerun()
-        with c_user:
-            st.markdown(
-                f'<div class="fi-user"><div class="fi-avatar">{Html.esc(self._user.avatar_initial)}</div>'
-                f'<div><div class="fi-uname">{Html.esc(self._user.username)}</div>'
-                f'<div class="fi-role">{Html.esc(self._user.role_label)}</div></div></div>',
-                unsafe_allow_html=True,
-            )
-        with c_out:
-            return st.button("Logout", key="logout")
+        with c_controls:
+            c_btn, c_user, c_out = st.columns([0.6, 2.8, 1.2], vertical_alignment="center")
+            with c_btn:
+                with st.container(key="theme_btn"):
+                    icon_svg = self.SUN_SVG if self._state.dark_mode else self.MOON_SVG
+                    st.markdown(f'<div style="position: absolute; pointer-events: none; margin-top: 8px; margin-left: 11px;">{icon_svg}</div>', unsafe_allow_html=True)
+                    if st.button("", key="theme_toggle_click", help="Toggle Theme"):
+                        self._state.dark_mode = not self._state.dark_mode
+                        st.rerun()
+            with c_user:
+                st.markdown(
+                    f'<div class="fi-user"><div class="fi-avatar">{Html.esc(self._user.avatar_initial)}</div>'
+                    f'<div><div class="fi-uname">{Html.esc(self._user.username)}</div>'
+                    f'<div class="fi-role">{Html.esc(self._user.role_label)}</div></div></div>',
+                    unsafe_allow_html=True,
+                )
+            with c_out:
+                return st.button("Logout", key="logout")
 
 
 # ---------------------------------------------------------------- pages
