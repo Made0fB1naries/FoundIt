@@ -673,32 +673,29 @@ class AppBar:
 
     def render(self):
         with st.container(key="appbar"):
-            col_brand, col_actions = st.columns([6, 4], vertical_alignment="center")
-            with col_brand:
+            c_brand, c_toggle, c_user, c_out = st.columns(
+                [8.4, 0.5, 1.5, 1], vertical_alignment="center", gap="small"
+            )
+            with c_brand:
                 st.markdown(
                     f'<div class="fi-brand"><div class="fi-logo">F</div><div><div class="fi-name">FoundIt</div>'
                     f'<div class="fi-sub">{Html.esc(self._institution.get_details())}</div></div></div>',
                     unsafe_allow_html=True,
                 )
-            with col_actions:
-                # We render these inline using columns inside the right container
-                c_toggle, c_user, c_out = st.columns([0.8, 2.4, 1.2], vertical_alignment="center", gap="small")
-                with c_toggle:
-                    with st.container(key="theme_btn"):
-                        if st.button("", key="theme_toggle_click", help="Toggle Theme"):
-                            self._state.dark_mode = not self._state.dark_mode
-                            st.rerun()
-                with c_user:
-                    st.markdown(
-                        f'<div class="fi-user"><div class="fi-avatar">{Html.esc(self._user.avatar_initial)}</div>'
-                        f'<div><div class="fi-uname">{Html.esc(self._user.username)}</div>'
-                        f'<div class="fi-role">{Html.esc(self._user.role_label)}</div></div></div>',
-                        unsafe_allow_html=True,
-                    )
-                with c_out:
-                    logout_clicked = st.button("Logout", key="logout")
-        return logout_clicked
-
+            with c_toggle:
+                with st.container(key="theme_btn"):
+                    if st.button("", key="theme_toggle_click", help="Toggle Theme"):
+                        self._state.dark_mode = not self._state.dark_mode
+                        st.rerun()
+            with c_user:
+                st.markdown(
+                    f'<div class="fi-user"><div class="fi-avatar">{Html.esc(self._user.avatar_initial)}</div>'
+                    f'<div><div class="fi-uname">{Html.esc(self._user.username)}</div>'
+                    f'<div class="fi-role">{Html.esc(self._user.role_label)}</div></div></div>',
+                    unsafe_allow_html=True,
+                )
+            with c_out:
+                return st.button("Logout", key="logout")
 
 # ---------------------------------------------------------------- pages
 
