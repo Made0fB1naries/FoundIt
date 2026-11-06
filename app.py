@@ -41,7 +41,7 @@ def get_matcher():
 
 class Theme:
     CSS = """
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
     --mapua-red: #C8102E;
@@ -84,7 +84,7 @@ html, body, .stApp, button, input, textarea, label, p, h1, h2, h3 {
 }
 footer { visibility: hidden; }
 
-/* Login split layout */
+/* Login split layout & Hero Typography */
 .st-key-login_shell {
     min-height: 100vh;
     padding: 0 !important;
@@ -100,22 +100,25 @@ footer { visibility: hidden; }
     background: #F1F1F2;
     border-right: 1px solid #E9E9EB;
 }
-.st-key-login_visual h1 {
+.hero-text-container {
+    padding: 1rem 0;
+}
+.hero-title {
+    font-size: clamp(2.6rem, 3.8vw, 3.6rem) !important;
+    font-weight: 800 !important;
     color: #FFFFFF !important;
+    line-height: 1.15 !important;
+    margin-bottom: 1rem !important;
     text-shadow: 0 2px 14px rgba(0, 0, 0, 0.42);
-    font-size: clamp(2rem, 3.2vw, 3.3rem);
-    line-height: 1.08;
-    letter-spacing: -0.045em;
-    font-weight: 700;
-    margin: 0 0 14px;
 }
-.st-key-login_visual p {
+.hero-subtitle {
+    font-size: 1.2rem !important;
     color: #FFFFFF !important;
+    line-height: 1.6 !important;
+    max-width: 460px;
     text-shadow: 0 1px 10px rgba(0, 0, 0, 0.42);
-    font-size: 1rem;
-    line-height: 1.65;
-    max-width: 430px;
 }
+
 .st-key-login_panel {
     min-height: 100vh;
     display: flex;
@@ -232,8 +235,8 @@ footer { visibility: hidden; }
         padding: 38px 28px 24px !important;
         border-right: 0;
     }
-    .st-key-login_visual h1 { font-size: 1.8rem; }
-    .st-key-login_visual p { font-size: 0.9rem; }
+    .hero-title { font-size: 2.1rem !important; }
+    .hero-subtitle { font-size: 1.05rem !important; }
     .st-key-login_panel {
         min-height: 66vh;
         padding: 38px 28px !important;
@@ -578,9 +581,11 @@ class LoginView:
             with visual:
                 with st.container(key="login_visual"):
                     st.markdown(
-                        '<div><h1>Lost something?<br>Find it here.</h1>'
-                        '<p>A campus lost-and-found space for the Mapúa MCM community. '
-                        'Sign in to report, browse, and keep track of items.</p></div>',
+                        '<div class="hero-text-container">'
+                        '<div class="hero-title">Lost something?<br>Find it here.</div>'
+                        '<div class="hero-subtitle">A campus lost-and-found space for the Mapúa MCM community. '
+                        'Sign in to report, browse, and keep track of items.</div>'
+                        '</div>',
                         unsafe_allow_html=True,
                     )
 
