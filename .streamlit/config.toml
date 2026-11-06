@@ -1,6 +1,6 @@
 [theme]
-primaryColor = "#B30000"       # Mapúa Red accent
-backgroundColor = "#F9F9FB"    # Soft off-white (easy on the eyes, not blinding pure white)
-secondaryBackgroundColor = "#FFFFFF" # Pure white for cards/containers
-textColor = "#2D3748"          # Dark slate gray for comfortable reading
+primaryColor = "#B30000"
+backgroundColor = "#F8F9FA"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#202124"
 font = "sans serif"
