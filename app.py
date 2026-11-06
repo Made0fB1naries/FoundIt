@@ -329,6 +329,92 @@ footer { visibility: hidden; }
 }
 .st-key-main_shell [data-testid="stFileUploader"] button {
     background: #1E293B !important; border: 1px solid #334155 !important; border-radius: 8px !important;
+
+/* ---- Dark mode: input boxes (inner wrappers were still white) ---- */
+.st-key-main_shell [data-testid="stTextInputRootElement"],
+.st-key-main_shell [data-testid="stTextAreaRootElement"],
+.st-key-main_shell [data-baseweb="input"] > div,
+.st-key-main_shell [data-baseweb="textarea"] > div,
+.st-key-main_shell [data-baseweb="base-input"],
+.st-key-main_shell [data-baseweb="select"] > div,
+.st-key-login_panel [data-testid="stTextInputRootElement"],
+.st-key-login_panel [data-baseweb="input"] > div,
+.st-key-login_panel [data-baseweb="base-input"] {
+    background-color: var(--input-bg) !important;
+    border-color: var(--line) !important;
+}
+.st-key-main_shell input,
+.st-key-main_shell textarea,
+.st-key-login_panel input {
+    background-color: var(--input-bg) !important;
+    color: #F8FAFC !important;
+    -webkit-text-fill-color: #F8FAFC !important;
+    caret-color: #F8FAFC !important;
+}
+
+/* ---- Dark mode: dropdown menus (they render outside the main shell) ---- */
+[data-baseweb="popover"] > div,
+[data-baseweb="popover"] ul,
+[data-baseweb="menu"],
+[role="listbox"] {
+    background-color: #1E293B !important;
+    color: #F8FAFC !important;
+}
+[data-baseweb="popover"] li,
+[role="option"] {
+    background-color: #1E293B !important;
+    color: #F8FAFC !important;
+}
+[data-baseweb="popover"] li:hover,
+[role="option"]:hover,
+[role="option"][aria-selected="true"] {
+    background-color: #334155 !important;
+}
+
+/* ---- Dark mode: buttons (Logout, Post Item, Apply, etc.) ---- */
+.st-key-main_shell [data-testid="stButton"] button {
+    background-color: #1E293B !important;
+    border: 1px solid #334155 !important;
+    color: #F8FAFC !important;
+}
+.st-key-main_shell [data-testid="stButton"] button p,
+.st-key-main_shell [data-testid="stButton"] button span {
+    color: #F8FAFC !important;
+}
+.st-key-main_shell [data-testid="stButton"] button:hover {
+    background-color: #334155 !important;
+    border-color: #475569 !important;
+}
+/* keep the theme toggle borderless */
+.st-key-main_shell .st-key-theme_btn button {
+    background-color: transparent !important;
+    border: none !important;
+}
+.st-key-main_shell .st-key-theme_btn button:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ---- Dark mode: navigation pills, captions, radio labels ---- */
+.st-key-main_shell [data-testid="stBaseButton-pills"] {
+    background-color: #1E293B !important;
+    border: 1px solid #334155 !important;
+    color: #F8FAFC !important;
+}
+.st-key-main_shell [data-testid="stBaseButton-pillsActive"] {
+    background-color: #331017 !important;
+    border: 1px solid var(--mapua-red) !important;
+    color: #FF8A8A !important;
+}
+.st-key-main_shell [data-testid="stBaseButton-pills"] p,
+.st-key-main_shell [data-testid="stBaseButton-pillsActive"] p {
+    color: inherit !important;
+}
+.st-key-main_shell [data-testid="stCaptionContainer"],
+.st-key-main_shell [data-testid="stCaptionContainer"] p,
+.st-key-main_shell [data-testid="stRadio"] label p,
+.st-key-main_shell h4 {
+    color: #CBD5E1 !important;
+}
 }
 """
 
@@ -593,7 +679,7 @@ class AppBar:
         # brand on the left; [theme toggle][user][logout] grouped on the right
         with st.container(key="appbar"):
             c_brand, c_toggle, c_user, c_out = st.columns(
-                [7, 0.5, 1.7, 1], vertical_alignment="center", gap="small"
+                [8.4, 0.5, 1.5, 1], vertical_alignment="center", gap="small"
             )
             with c_brand:
                 st.markdown(
