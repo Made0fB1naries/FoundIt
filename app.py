@@ -346,6 +346,12 @@ footer { visibility: hidden; }
     background-position: center !important;
     background-size: 20px 20px !important;
 }}
+
+/* push toggle + user + logout down so they sit between the subtitle and the pills */
+.st-key-appbar [data-testid="stColumn"]:not(:first-child),
+.st-key-appbar [data-testid="column"]:not(:first-child) {{
+    transform: translateY(30px);
+}}
 """
 
         image_path = Path(__file__).parent / "assets" / "mapua_background.png"
@@ -565,31 +571,30 @@ class AppBar:
         self._state = state
 
     def render(self):
-        # one row: brand on the left, then [theme toggle][user][logout] grouped on the right
-        c_brand, c_toggle, c_user, c_out = st.columns(
-            [7, 0.5, 1.7, 1], vertical_alignment="center", gap="small"
-        )
-        with c_brand:
-            st.markdown(
-                f'<div class="fi-brand"><div class="fi-logo">F</div><div><div class="fi-name">FoundIt</div>'
-                f'<div class="fi-sub">{Html.esc(self._institution.get_details())}</div></div></div>',
-                unsafe_allow_html=True,
+        with st.container(key="appbar"):
+            c_brand, c_toggle, c_user, c_out = st.columns(
+                [7, 0.5, 1.7, 1], vertical_alignment="center", gap="small"
             )
-        with c_toggle:
-            with st.container(key="theme_btn"):
-                if st.button("", key="theme_toggle_click", help="Toggle Theme"):
-                    self._state.dark_mode = not self._state.dark_mode
-                    st.rerun()
-        with c_user:
-            st.markdown(
-                f'<div class="fi-user"><div class="fi-avatar">{Html.esc(self._user.avatar_initial)}</div>'
-                f'<div><div class="fi-uname">{Html.esc(self._user.username)}</div>'
-                f'<div class="fi-role">{Html.esc(self._user.role_label)}</div></div></div>',
-                unsafe_allow_html=True,
-            )
-        with c_out:
-            return st.button("Logout", key="logout")
-
+            with c_brand:
+                st.markdown(
+                    f'<div class="fi-brand"><div class="fi-logo">F</div><div><div class="fi-name">FoundIt</div>'
+                    f'<div class="fi-sub">{Html.esc(self._institution.get_details())}</div></div></div>',
+                    unsafe_allow_html=True,
+                )
+            with c_toggle:
+                with st.container(key="theme_btn"):
+                    if st.button("", key="theme_toggle_click", help="Toggle Theme"):
+                        self._state.dark_mode = not self._state.dark_mode
+                        st.rerun()
+            with c_user:
+                st.markdown(
+                    f'<div class="fi-user"><div class="fi-avatar">{Html.esc(self._user.avatar_initial)}</div>'
+                    f'<div><div class="fi-uname">{Html.esc(self._user.username)}</div>'
+                    f'<div class="fi-role">{Html.esc(self._user.role_label)}</div></div></div>',
+                    unsafe_allow_html=True,
+                )
+            with c_out:
+                return st.button("Logout", key="logout")
 
 # ---------------------------------------------------------------- pages
 
