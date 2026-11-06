@@ -40,6 +40,9 @@ def get_matcher():
 # ---------------------------------------------------------------- UI Theme Engine (Light & Dark Mode)
 
 class Theme:
+    MOON_SVG = """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>"""
+    SUN_SVG = """<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>"""
+
     LIGHT_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -159,26 +162,25 @@ footer { visibility: hidden; }
 }
 .fi-name { font-size: 1.4rem; font-weight: 700; line-height: 1.1; color: #202124; }
 .fi-sub { color: #777D87; font-size: 0.8rem; }
-.fi-user { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
+.fi-user { display: flex; align-items: center; gap: 10px; justify-content: flex-start; white-space: nowrap; }
 .fi-avatar {
     width: 36px; height: 36px; border-radius: 50%; background: #FCE8EC; color: var(--mapua-red);
-    display: flex; align-items: center; justify-content: center; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0;
 }
 .fi-uname { font-weight: 600; font-size: 0.9rem; color: #202124; line-height: 1.1; }
 .fi-role { color: #80868B; font-size: 0.75rem; }
 
-/* Theme switch button styling */
+/* Theme toggle: borderless icon button */
 .st-key-main_shell .st-key-theme_btn button {
-    background: #FFFFFF !important;
-    border: 1px solid #D5D8DE !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
     border-radius: 8px !important;
-    min-height: 38px !important;
-    width: 42px !important;
+    min-height: 40px !important;
+    width: 40px !important;
     padding: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
 }
+.st-key-main_shell .st-key-theme_btn button:hover { background-color: rgba(0, 0, 0, 0.06) !important; }
 .st-key-main_shell .st-key-theme_btn button p { display: none !important; }
 
 /* Grid Cards & Images (Preserves Image Visibility) */
@@ -287,23 +289,22 @@ footer { visibility: hidden; }
 .fi-logo { width: 44px; height: 44px; border-radius: 12px; background: var(--mapua-red); color: #FFFFFF; font-weight: 700; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; }
 .fi-name { font-size: 1.4rem; font-weight: 700; color: #F8FAFC; }
 .fi-sub { color: #94A3B8; font-size: 0.8rem; }
-.fi-user { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
-.fi-avatar { width: 36px; height: 36px; border-radius: 50%; background: #331017; color: #FF8A8A; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+.fi-user { display: flex; align-items: center; gap: 10px; justify-content: flex-start; white-space: nowrap; }
+.fi-avatar { width: 36px; height: 36px; border-radius: 50%; background: #331017; color: #FF8A8A; display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; }
 .fi-uname { font-weight: 600; font-size: 0.9rem; color: #F8FAFC; line-height: 1.1; }
 .fi-role { color: #94A3B8; font-size: 0.75rem; }
 
-/* Dark Mode Theme switch button styling */
+/* Dark Mode Theme toggle: borderless icon button */
 .st-key-main_shell .st-key-theme_btn button {
-    background: #1E293B !important;
-    border: 1px solid #334155 !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
     border-radius: 8px !important;
-    min-height: 38px !important;
-    width: 42px !important;
+    min-height: 40px !important;
+    width: 40px !important;
     padding: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
 }
+.st-key-main_shell .st-key-theme_btn button:hover { background-color: rgba(255, 255, 255, 0.08) !important; }
 .st-key-main_shell .st-key-theme_btn button p { display: none !important; }
 
 /* Dark Mode Cards & Images (Ensures Photo Display) */
@@ -334,6 +335,19 @@ footer { visibility: hidden; }
     @classmethod
     def apply(cls, is_dark=False):
         selected_css = cls.DARK_CSS if is_dark else cls.LIGHT_CSS
+
+        # theme toggle icon is drawn as the button's background so it is always perfectly centered
+        icon_svg = cls.SUN_SVG if is_dark else cls.MOON_SVG
+        icon_uri = quote(icon_svg, safe="")
+        icon_css = f"""
+.st-key-theme_btn button {{
+    background-image: url("data:image/svg+xml;utf8,{icon_uri}") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: 20px 20px !important;
+}}
+"""
+
         image_path = Path(__file__).parent / "assets" / "mapua_background.png"
         image_css = ""
         if image_path.is_file():
@@ -346,7 +360,7 @@ footer { visibility: hidden; }
     background-size: cover; background-position: center center; background-repeat: no-repeat;
 }}
 """
-        st.markdown(f"<style>{selected_css}{image_css}</style>", unsafe_allow_html=True)
+        st.markdown(f"<style>{selected_css}{icon_css}{image_css}</style>", unsafe_allow_html=True)
 
 
 class Html:
@@ -545,40 +559,36 @@ class LoginView:
 
 
 class AppBar:
-    MOON_SVG = """<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>"""
-    SUN_SVG = """<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>"""
-
     def __init__(self, institution, user, state):
         self._institution = institution
         self._user = user
         self._state = state
 
     def render(self):
-        c_brand, c_controls = st.columns([5, 5], vertical_alignment="center")
+        # one row: brand on the left, then [theme toggle][user][logout] grouped on the right
+        c_brand, c_toggle, c_user, c_out = st.columns(
+            [7, 0.5, 1.7, 1], vertical_alignment="center", gap="small"
+        )
         with c_brand:
             st.markdown(
                 f'<div class="fi-brand"><div class="fi-logo">F</div><div><div class="fi-name">FoundIt</div>'
                 f'<div class="fi-sub">{Html.esc(self._institution.get_details())}</div></div></div>',
                 unsafe_allow_html=True,
             )
-        with c_controls:
-            c_btn, c_user, c_out = st.columns([0.6, 2.8, 1.2], vertical_alignment="center")
-            with c_btn:
-                with st.container(key="theme_btn"):
-                    icon_svg = self.SUN_SVG if self._state.dark_mode else self.MOON_SVG
-                    st.markdown(f'<div style="position: absolute; pointer-events: none; margin-top: 8px; margin-left: 11px;">{icon_svg}</div>', unsafe_allow_html=True)
-                    if st.button("", key="theme_toggle_click", help="Toggle Theme"):
-                        self._state.dark_mode = not self._state.dark_mode
-                        st.rerun()
-            with c_user:
-                st.markdown(
-                    f'<div class="fi-user"><div class="fi-avatar">{Html.esc(self._user.avatar_initial)}</div>'
-                    f'<div><div class="fi-uname">{Html.esc(self._user.username)}</div>'
-                    f'<div class="fi-role">{Html.esc(self._user.role_label)}</div></div></div>',
-                    unsafe_allow_html=True,
-                )
-            with c_out:
-                return st.button("Logout", key="logout")
+        with c_toggle:
+            with st.container(key="theme_btn"):
+                if st.button("", key="theme_toggle_click", help="Toggle Theme"):
+                    self._state.dark_mode = not self._state.dark_mode
+                    st.rerun()
+        with c_user:
+            st.markdown(
+                f'<div class="fi-user"><div class="fi-avatar">{Html.esc(self._user.avatar_initial)}</div>'
+                f'<div><div class="fi-uname">{Html.esc(self._user.username)}</div>'
+                f'<div class="fi-role">{Html.esc(self._user.role_label)}</div></div></div>',
+                unsafe_allow_html=True,
+            )
+        with c_out:
+            return st.button("Logout", key="logout")
 
 
 # ---------------------------------------------------------------- pages
