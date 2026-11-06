@@ -99,6 +99,22 @@ footer { visibility: hidden; }
     height: 100vh !important;
     margin: 0 !important;
 }
+.st-key-login_shell [data-testid="stColumn"],
+.st-key-login_shell [data-testid="column"] {
+    padding: 0 !important;
+    margin: 0 !important;
+    height: 100vh !important;
+}
+
+.st-key-login_visual {
+    min-height: 100vh;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 7vh 5vw !important;
+    background: #1A1C1E;
+    border-right: 1px solid #E9E9EB;
+}
 .hero-text-container { padding: 1rem 0; }
 .hero-title {
     font-size: clamp(2.6rem, 3.8vw, 3.6rem) !important;
@@ -117,9 +133,11 @@ footer { visibility: hidden; }
 }
 
 .st-key-login_panel {
-    min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+    width: 100% !important;
+    min-height: 100vh; height: 100vh; display: flex; flex-direction: column; justify-content: center;
     padding: 6vh clamp(28px, 6vw, 96px) !important;
     background: #FFFFFF;
+    box-sizing: border-box !important;
 }
 .fi-login-brand { display: flex; align-items: center; gap: 11px; margin-bottom: 48px; }
 .fi-login-mark {
@@ -241,7 +259,34 @@ html, body, .stApp {
 [data-testid="stHeader"] { height: 0 !important; background: transparent !important; }
 footer { visibility: hidden; }
 
-.st-key-login_shell { min-height: 100vh; padding: 0 !important; }
+/* Login split layout - True Full Screen Override */
+[data-testid="stAppViewContainer"] {
+    overflow-x: hidden !important;
+}
+.st-key-login_shell {
+    width: 100vw !important;
+    max-width: 100% !important;
+    min-height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 99 !important;
+}
+.st-key-login_shell [data-testid="stHorizontalBlock"] {
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+}
+.st-key-login_shell [data-testid="stColumn"],
+.st-key-login_shell [data-testid="column"] {
+    padding: 0 !important;
+    margin: 0 !important;
+    height: 100vh !important;
+}
+
 .st-key-login_visual {
     min-height: 100vh; height: 100vh; box-sizing: border-box;
     display: flex; flex-direction: column; justify-content: flex-end;
@@ -254,8 +299,10 @@ footer { visibility: hidden; }
 .hero-subtitle { font-size: 1.2rem !important; color: #94A3B8 !important; line-height: 1.6 !important; max-width: 460px; }
 
 .st-key-login_panel {
-    min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+    width: 100% !important;
+    min-height: 100vh; height: 100vh; display: flex; flex-direction: column; justify-content: center;
     padding: 6vh clamp(28px, 6vw, 96px) !important; background: #1E293B;
+    box-sizing: border-box !important;
 }
 .fi-login-mark {
     width: 42px; height: 42px; display: grid; place-items: center; border-radius: 10px;
@@ -434,19 +481,6 @@ footer { visibility: hidden; }
 }}
 """
         st.markdown(f"<style>{selected_css}{icon_css}{image_css}</style>", unsafe_allow_html=True)
-
-
-class Html:
-    @staticmethod
-    def esc(value):
-        return html.escape(str(value or ""))
-
-
-class EmptyState:
-    @staticmethod
-    def show(message):
-        st.markdown(f'<div class="fi-empty">{Html.esc(message)}</div>', unsafe_allow_html=True)
-
 
 # ---------------------------------------------------------------- session + cookies
 
