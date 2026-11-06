@@ -397,19 +397,16 @@ footer { visibility: hidden; }
 .st-key-appbar [data-testid="stHorizontalBlock"] {{
     align-items: center !important;
 }}
-.st-key-appbar [data-testid="stColumn"] > [data-testid="stVerticalBlock"],
-.st-key-appbar [data-testid="column"] > [data-testid="stVerticalBlock"] {{
-    gap: 0 !important;
-    justify-content: center !important;
+.st-key-appbar [data-testid="stColumn"],
+.st-key-appbar [data-testid="column"] {{
+    display: flex !important;
+    align-items: center !important;
 }}
-.st-key-appbar [data-testid="stElementContainer"],
-.st-key-appbar [data-testid="stMarkdownContainer"],
-.st-key-appbar [data-testid="stMarkdownContainer"] p {{
-    margin: 0 !important;
-}}
-.st-key-appbar [data-testid="stButton"] {{
-    display: flex;
-    align-items: center;
+
+/* Push right controls down slightly so they line up precisely with the brand text center */
+.st-key-appbar [data-testid="stColumn"]:not(:first-child),
+.st-key-appbar [data-testid="column"]:not(:first-child) {{
+    padding-top: 4px !important;
 }}
 """
 
