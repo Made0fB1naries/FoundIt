@@ -551,7 +551,11 @@ class CookieSession:
 
 
 # ---------------------------------------------------------------- views
-
+class Html:
+    @staticmethod
+    def esc(value):
+        return html.escape(str(value or ""))
+      
 class PostCardView:
     STATUS_CLASS = {Status.PENDING: "fi-pending", Status.CLAIMED: "fi-claimed"}
 
