@@ -183,7 +183,7 @@ footer { visibility: hidden; }
 .st-key-main_shell .st-key-theme_btn button:hover { background-color: rgba(0, 0, 0, 0.06) !important; }
 .st-key-main_shell .st-key-theme_btn button p { display: none !important; }
 
-/* Grid Cards & Images (Preserves Image Visibility) */
+/* Grid Cards & Images */
 [class*="st-key-card_"] {
     background: #FFFFFF; border: 1px solid var(--line); border-radius: 16px; padding: 14px; gap: 0.6rem;
 }
@@ -256,33 +256,6 @@ footer { visibility: hidden; }
 .fi-login-heading h2 { color: #F8FAFC; font-size: clamp(1.7rem, 2.2vw, 2.15rem); font-weight: 700; }
 .fi-login-heading p { color: #94A3B8; font-size: 0.94rem; }
 
-/* Dark Mode Form Inputs */
-.st-key-login_panel [data-baseweb="input"],
-.st-key-main_shell [data-baseweb="input"],
-.st-key-main_shell [data-baseweb="base-input"],
-.st-key-main_shell [data-baseweb="textarea"],
-.st-key-main_shell [data-baseweb="select"] > div {
-    background: var(--input-bg) !important;
-    border: 1px solid var(--line) !important;
-    border-radius: 8px !important;
-}
-.st-key-main_shell input,
-.st-key-main_shell textarea,
-.st-key-main_shell [data-baseweb="select"] span,
-.st-key-main_shell [data-baseweb="select"] div,
-.st-key-login_panel input {
-    color: #F8FAFC !important;
-    -webkit-text-fill-color: #F8FAFC !important;
-}
-.st-key-main_shell input::placeholder,
-.st-key-main_shell textarea::placeholder,
-.st-key-login_panel input::placeholder {
-    color: #64748B !important;
-    -webkit-text-fill-color: #64748B !important;
-}
-.st-key-main_shell [data-baseweb="select"] svg { fill: #F8FAFC !important; }
-.st-key-main_shell [data-testid="stWidgetLabel"] p { color: #F8FAFC !important; font-weight: 600; }
-
 /* Main Shell */
 .st-key-main_shell { width: 100%; max-width: 1180px; margin: 0 auto !important; padding: 2rem 2.25rem 3rem !important; }
 .fi-brand { display: flex; align-items: center; gap: 12px; }
@@ -294,20 +267,7 @@ footer { visibility: hidden; }
 .fi-uname { font-weight: 600; font-size: 0.9rem; color: #F8FAFC; line-height: 1.1; }
 .fi-role { color: #94A3B8; font-size: 0.75rem; }
 
-/* Dark Mode Theme toggle: borderless icon button */
-.st-key-main_shell .st-key-theme_btn button {
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    border-radius: 8px !important;
-    min-height: 40px !important;
-    width: 40px !important;
-    padding: 0 !important;
-}
-.st-key-main_shell .st-key-theme_btn button:hover { background-color: rgba(255, 255, 255, 0.08) !important; }
-.st-key-main_shell .st-key-theme_btn button p { display: none !important; }
-
-/* Dark Mode Cards & Images (Ensures Photo Display) */
+/* Dark Mode Cards & Images */
 [class*="st-key-card_"] {
     background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; gap: 0.6rem;
 }
@@ -329,21 +289,9 @@ footer { visibility: hidden; }
 }
 .st-key-main_shell [data-testid="stFileUploader"] button {
     background: #1E293B !important; border: 1px solid #334155 !important; border-radius: 8px !important;
-    
-.st-key-main_shell [data-testid="stFileUploader"] button {
-    background: #1E293B !important; border: 1px solid #334155 !important; border-radius: 8px !important;
 }
 
-/* ---- Dark mode: input boxes (inner wrappers were still white) ---- */
-.st-key-main_shell [data-testid="stTextInputRootElement"],
-...
-(everything else from the dark mode snippet)
-...
-.st-key-main_shell h4 {
-    color: #CBD5E1 !important;
-}
-
-/* ---- Dark mode: input boxes (inner wrappers were still white) ---- */
+/* Dark mode: input boxes */
 .st-key-main_shell [data-testid="stTextInputRootElement"],
 .st-key-main_shell [data-testid="stTextAreaRootElement"],
 .st-key-main_shell [data-baseweb="input"] > div,
@@ -365,7 +313,7 @@ footer { visibility: hidden; }
     caret-color: #F8FAFC !important;
 }
 
-/* ---- Dark mode: dropdown menus (they render outside the main shell) ---- */
+/* Dark mode: dropdown menus */
 [data-baseweb="popover"] > div,
 [data-baseweb="popover"] ul,
 [data-baseweb="menu"],
@@ -384,7 +332,7 @@ footer { visibility: hidden; }
     background-color: #334155 !important;
 }
 
-/* ---- Dark mode: buttons (Logout, Post Item, Apply, etc.) ---- */
+/* Dark mode: buttons */
 .st-key-main_shell [data-testid="stButton"] button {
     background-color: #1E293B !important;
     border: 1px solid #334155 !important;
@@ -398,16 +346,18 @@ footer { visibility: hidden; }
     background-color: #334155 !important;
     border-color: #475569 !important;
 }
-/* keep the theme toggle borderless */
+
+/* Keep the theme toggle borderless */
 .st-key-main_shell .st-key-theme_btn button {
     background-color: transparent !important;
     border: none !important;
+    box-shadow: none !important;
 }
 .st-key-main_shell .st-key-theme_btn button:hover {
     background-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-/* ---- Dark mode: navigation pills, captions, radio labels ---- */
+/* Dark mode: navigation pills, captions, radio labels */
 .st-key-main_shell [data-testid="stBaseButton-pills"] {
     background-color: #1E293B !important;
     border: 1px solid #334155 !important;
@@ -428,14 +378,12 @@ footer { visibility: hidden; }
 .st-key-main_shell h4 {
     color: #CBD5E1 !important;
 }
-}
 """
 
     @classmethod
     def apply(cls, is_dark=False):
         selected_css = cls.DARK_CSS if is_dark else cls.LIGHT_CSS
 
-        # theme toggle icon is drawn as the button's background so it is always perfectly centered
         icon_svg = cls.SUN_SVG if is_dark else cls.MOON_SVG
         icon_uri = quote(icon_svg, safe="")
         icon_css = f"""
@@ -446,7 +394,6 @@ footer { visibility: hidden; }
     background-size: 20px 20px !important;
 }}
 
-/* app bar: every column centers its content on the same line */
 .st-key-appbar [data-testid="stHorizontalBlock"] {{
     align-items: center !important;
 }}
@@ -463,12 +410,6 @@ footer { visibility: hidden; }
 .st-key-appbar [data-testid="stButton"] {{
     display: flex;
     align-items: center;
-}}
-
-/* push toggle + user + logout down so they sit between the subtitle and the pills */
-.st-key-appbar [data-testid="stColumn"]:not(:first-child),
-.st-key-appbar [data-testid="column"]:not(:first-child) {{
-    transform: translateY(30px);
 }}
 """
 
@@ -689,7 +630,6 @@ class AppBar:
         self._state = state
 
     def render(self):
-        # brand on the left; [theme toggle][user][logout] grouped on the right
         with st.container(key="appbar"):
             c_brand, c_toggle, c_user, c_out = st.columns(
                 [8.4, 0.5, 1.5, 1], vertical_alignment="center", gap="small"
@@ -714,6 +654,7 @@ class AppBar:
                 )
             with c_out:
                 return st.button("Logout", key="logout")
+
 
 # ---------------------------------------------------------------- pages
 
