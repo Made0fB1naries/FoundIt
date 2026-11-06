@@ -78,16 +78,26 @@ html, body, .stApp {
 }
 footer { visibility: hidden; }
 
-/* Login split layout */
-.st-key-login_shell { min-height: 100vh; padding: 0 !important; }
-.st-key-login_visual {
-    min-height: 100vh;
-    height: 100vh;
-    box-sizing: border-box;
-    display: flex; flex-direction: column; justify-content: flex-end;
-    padding: 7vh 5vw !important;
-    background: #1A1C1E;
-    border-right: 1px solid #E9E9EB;
+/* Login split layout - True Full Screen Override */
+[data-testid="stAppViewContainer"] {
+    overflow-x: hidden !important;
+}
+.st-key-login_shell {
+    width: 100vw !important;
+    max-width: 100% !important;
+    min-height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 99 !important;
+}
+.st-key-login_shell [data-testid="stHorizontalBlock"] {
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
 }
 .hero-text-container { padding: 1rem 0; }
 .hero-title {
