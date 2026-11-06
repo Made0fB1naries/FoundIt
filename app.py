@@ -159,12 +159,25 @@ footer { visibility: hidden; }
 }
 .fi-name { font-size: 1.4rem; font-weight: 700; line-height: 1.1; color: #202124; }
 .fi-sub { color: #777D87; font-size: 0.8rem; }
+.fi-user { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
 .fi-avatar {
     width: 36px; height: 36px; border-radius: 50%; background: #FCE8EC; color: var(--mapua-red);
     display: flex; align-items: center; justify-content: center; font-weight: 600;
 }
-.fi-uname { font-weight: 600; font-size: 0.9rem; color: #202124; }
+.fi-uname { font-weight: 600; font-size: 0.9rem; color: #202124; line-height: 1.1; }
 .fi-role { color: #80868B; font-size: 0.75rem; }
+
+/* Theme switch button styling (Light Mode: dark moon icon) */
+.st-key-main_shell .st-key-theme_btn button {
+    background: #FFFFFF !important;
+    border: 1px solid #D5D8DE !important;
+    border-radius: 8px !important;
+    min-height: 40px !important;
+}
+.st-key-main_shell .st-key-theme_btn button p {
+    color: #202124 !important;
+    font-size: 1.1rem !important;
+}
 
 /* Grid Cards */
 [class*="st-key-card_"] {
@@ -267,12 +280,26 @@ footer { visibility: hidden; }
 
 /* Main Shell */
 .st-key-main_shell { width: 100%; max-width: 1180px; margin: 0 auto !important; padding: 2rem 2.25rem 3rem !important; }
+.fi-brand { display: flex; align-items: center; gap: 12px; }
 .fi-logo { width: 44px; height: 44px; border-radius: 12px; background: var(--mapua-red); color: #FFFFFF; font-weight: 700; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; }
 .fi-name { font-size: 1.4rem; font-weight: 700; color: #F8FAFC; }
 .fi-sub { color: #94A3B8; font-size: 0.8rem; }
+.fi-user { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
 .fi-avatar { width: 36px; height: 36px; border-radius: 50%; background: #331017; color: #FF8A8A; display: flex; align-items: center; justify-content: center; font-weight: 600; }
-.fi-uname { font-weight: 600; font-size: 0.9rem; color: #F8FAFC; }
+.fi-uname { font-weight: 600; font-size: 0.9rem; color: #F8FAFC; line-height: 1.1; }
 .fi-role { color: #94A3B8; font-size: 0.75rem; }
+
+/* Theme switch button styling (Dark Mode: white sun icon) */
+.st-key-main_shell .st-key-theme_btn button {
+    background: #1E293B !important;
+    border: 1px solid #334155 !important;
+    border-radius: 8px !important;
+    min-height: 40px !important;
+}
+.st-key-main_shell .st-key-theme_btn button p {
+    color: #FFFFFF !important;
+    font-size: 1.1rem !important;
+}
 
 /* Dark Mode Cards */
 [class*="st-key-card_"] {
@@ -517,13 +544,19 @@ class AppBar:
         self._state = state
 
     def render(self):
-        c_brand, c_user, c_mode, c_out = st.columns([4.5, 2.5, 1, 1.2], vertical_alignment="center")
+        c_brand, c_mode, c_user, c_out = st.columns([4, 1, 2.5, 1.2], vertical_alignment="center")
         with c_brand:
             st.markdown(
                 f'<div class="fi-brand"><div class="fi-logo">F</div><div><div class="fi-name">FoundIt</div>'
                 f'<div class="fi-sub">{Html.esc(self._institution.get_details())}</div></div></div>',
                 unsafe_allow_html=True,
             )
+        with c_mode:
+            with st.container(key="theme_btn"):
+                button_label = "☀️" if self._state.dark_mode else "🌙"
+                if st.button(button_label, help="Toggle Theme"):
+                    self._state.dark_mode = not self._state.dark_mode
+                    st.rerun()
         with c_user:
             st.markdown(
                 f'<div class="fi-user"><div class="fi-avatar">{Html.esc(self._user.avatar_initial)}</div>'
@@ -531,11 +564,6 @@ class AppBar:
                 f'<div class="fi-role">{Html.esc(self._user.role_label)}</div></div></div>',
                 unsafe_allow_html=True,
             )
-        with c_mode:
-            is_dark = st.toggle("🌙", value=self._state.dark_mode, help="Toggle Dark Mode")
-            if is_dark != self._state.dark_mode:
-                self._state.dark_mode = is_dark
-                st.rerun()
         with c_out:
             return st.button("Logout", key="logout")
 
