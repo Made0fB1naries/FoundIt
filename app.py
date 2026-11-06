@@ -679,7 +679,7 @@ class AppBar:
             with c_brand:
                 st.markdown(
                     f'<div class="fi-brand"><div class="fi-logo">F</div><div><div class="fi-name">FoundIt</div>'
-                    f'<div class="fi-sub">{Html.esc(self._institution.get_details())}</div></div></div>',
+                    f'<div class="fi-sub">{html.escape(str(self._institution.get_details()))}</div></div></div>',
                     unsafe_allow_html=True,
                 )
             with c_toggle:
@@ -689,9 +689,9 @@ class AppBar:
                         st.rerun()
             with c_user:
                 st.markdown(
-                    f'<div class="fi-user"><div class="fi-avatar">{Html.esc(self._user.avatar_initial)}</div>'
-                    f'<div><div class="fi-uname">{Html.esc(self._user.username)}</div>'
-                    f'<div class="fi-role">{Html.esc(self._user.role_label)}</div></div></div>',
+                    f'<div class="fi-user"><div class="fi-avatar">{html.escape(str(self._user.avatar_initial))}</div>'
+                    f'<div><div class="fi-uname">{html.escape(str(self._user.username))}</div>'
+                    f'<div class="fi-role">{html.escape(str(self._user.role_label))}</div></div></div>',
                     unsafe_allow_html=True,
                 )
             with c_out:
