@@ -386,7 +386,7 @@ footer { visibility: hidden; }
 
         icon_svg = cls.SUN_SVG if is_dark else cls.MOON_SVG
         icon_uri = quote(icon_svg, safe="")
-       icon_css = f"""
+        icon_css = f"""
 .st-key-theme_btn button {{
     background-image: url("data:image/svg+xml;utf8,{icon_uri}") !important;
     background-repeat: no-repeat !important;
@@ -394,21 +394,20 @@ footer { visibility: hidden; }
     background-size: 20px 20px !important;
 }}
 
-/* Force exact vertical centering and baseline alignment across all top bar elements */
+/* Perfectly align and center appbar items vertically */
 .st-key-appbar [data-testid="stHorizontalBlock"] {{
     align-items: center !important;
-    display: flex !important;
 }}
 .st-key-appbar [data-testid="stColumn"],
 .st-key-appbar [data-testid="column"] {{
     display: flex !important;
     align-items: center !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
 }}
-.st-key-appbar [data-testid="stVerticalBlock"] {{
-    gap: 0 !important;
-    justify-content: center !important;
+
+/* Push right controls down slightly so they line up precisely with the brand text center */
+.st-key-appbar [data-testid="stColumn"]:not(:first-child),
+.st-key-appbar [data-testid="column"]:not(:first-child) {{
+    padding-top: 4px !important;
 }}
 """
 
