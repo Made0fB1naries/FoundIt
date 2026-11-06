@@ -347,6 +347,25 @@ footer { visibility: hidden; }
     background-size: 20px 20px !important;
 }}
 
+/* app bar: every column centers its content on the same line */
+.st-key-appbar [data-testid="stHorizontalBlock"] {{
+    align-items: center !important;
+}}
+.st-key-appbar [data-testid="stColumn"] > [data-testid="stVerticalBlock"],
+.st-key-appbar [data-testid="column"] > [data-testid="stVerticalBlock"] {{
+    gap: 0 !important;
+    justify-content: center !important;
+}}
+.st-key-appbar [data-testid="stElementContainer"],
+.st-key-appbar [data-testid="stMarkdownContainer"],
+.st-key-appbar [data-testid="stMarkdownContainer"] p {{
+    margin: 0 !important;
+}}
+.st-key-appbar [data-testid="stButton"] {{
+    display: flex;
+    align-items: center;
+}}
+
 /* push toggle + user + logout down so they sit between the subtitle and the pills */
 .st-key-appbar [data-testid="stColumn"]:not(:first-child),
 .st-key-appbar [data-testid="column"]:not(:first-child) {{
@@ -571,6 +590,7 @@ class AppBar:
         self._state = state
 
     def render(self):
+        # brand on the left; [theme toggle][user][logout] grouped on the right
         with st.container(key="appbar"):
             c_brand, c_toggle, c_user, c_out = st.columns(
                 [7, 0.5, 1.7, 1], vertical_alignment="center", gap="small"
