@@ -5,6 +5,8 @@ import base64
 from pathlib import Path
 from abc import ABC, abstractmethod
 from urllib.parse import quote
+from components import EmptyState
+from utils.ui import EmptyState
 
 import streamlit as st
 import extra_streamlit_components as stx
@@ -736,17 +738,14 @@ class AdminPage(Page):
 class FeedPage(Page):
     title = "Feed"
 
-    def _render_possible_matches(self, query, campus, shown):
-        shown_ids = {post.post_id for post in shown}
-        matches = tuple(
-            post for post in self._service.possible_matches(query, campus)
-            if post.post_id not in shown_ids
-        )
-        if not matches:
-            return
+def _render_possible_matches(self, matches):
         st.markdown("#### Possible matches")
         st.caption("is this what you were looking for? try searching the items from the selected campus first.")
-        PostGrid(matches, retention_days=self._service.RETENTION_DAYS, key="match_grid").render()
+
+        if matches:
+            PostGrid(matches, retention_days=self._service.RETENTION_DAYS, key="match_grid").render()
+        else:
+            EmptyState.show("No matching items found.")
 
     def render(self, user):
         summary = self._service.summary()
@@ -759,7 +758,6 @@ class FeedPage(Page):
             )
         with col_campus:
             campus = self._campus_filter("feed_campus")
-
         posts = self._service.active(campus, query)
         if not posts:
             EmptyState.show("No items match your search or filter.")
