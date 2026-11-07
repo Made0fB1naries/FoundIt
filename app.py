@@ -5,7 +5,6 @@ import base64
 from pathlib import Path
 from abc import ABC, abstractmethod
 from urllib.parse import quote
-from utils.ui import EmptyState
 
 import streamlit as st
 import extra_streamlit_components as stx
@@ -18,6 +17,14 @@ try:  # the app still runs without SWI-Prolog; the "Possible matches" panel is t
     from logic_engine import FoundItLogicEngine
 except ImportError:
     FoundItLogicEngine = None
+
+
+# ---------------------------------------------------------------- empty state helper
+
+class EmptyState:
+    @staticmethod
+    def show(message):
+        st.markdown(f'<div class="fi-empty">{html.escape(str(message))}</div>', unsafe_allow_html=True)
 
 
 # ---------------------------------------------------------------- shared resources
