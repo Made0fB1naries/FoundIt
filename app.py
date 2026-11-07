@@ -5,7 +5,7 @@ import base64
 from pathlib import Path
 from abc import ABC, abstractmethod
 from urllib.parse import quote
-from components import EmptyState
+from utils.ui import EmptyState
 
 import streamlit as st
 import extra_streamlit_components as stx
