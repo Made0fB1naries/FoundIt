@@ -6,7 +6,6 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 from urllib.parse import quote
 from components import EmptyState
-from utils.ui import EmptyState
 
 import streamlit as st
 import extra_streamlit_components as stx
@@ -738,14 +737,24 @@ class AdminPage(Page):
 class FeedPage(Page):
     title = "Feed"
 
-def _render_possible_matches(self, matches):
-        st.markdown("#### Possible matches")
-        st.caption("is this what you were looking for? try searching the items from the selected campus first.")
+    def _render_possible_matches(self, query, campus, posts):
+        matches = []
+        try:
+            if hasattr(self._service, "find_matches"):
+                matches = self._service.find_matches(query, campus)
+            elif hasattr(self._service, "_matcher") and self._service._matcher:
+                matches = self._service._matcher.find_matches(query, campus)
+            elif get_matcher() and query:
+                matcher = get_matcher()
+                if hasattr(matcher, "find_matches"):
+                    matches = matcher.find_matches(query, campus)
+        except Exception:
+            matches = []
 
-        if matches:
+        if query and matches:
+            st.markdown("#### Possible matches")
+            st.caption("is this what you were looking for? try searching the items from the selected campus first.")
             PostGrid(matches, retention_days=self._service.RETENTION_DAYS, key="match_grid").render()
-        else:
-            EmptyState.show("No matching items found.")
 
     def render(self, user):
         summary = self._service.summary()
